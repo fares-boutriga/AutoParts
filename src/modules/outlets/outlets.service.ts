@@ -70,6 +70,20 @@ export class OutletsService {
         }
     }
 
+    async updateAlertSettings(id: string, updateAlertsDto: { alertsEnabled: boolean; alertEmail?: string }) {
+        try {
+            return await this.prisma.outlet.update({
+                where: { id },
+                data: {
+                    alertsEnabled: updateAlertsDto.alertsEnabled,
+                    email: updateAlertsDto.alertEmail,
+                },
+            });
+        } catch (error) {
+            throw new NotFoundException('Outlet not found');
+        }
+    }
+
     async remove(id: string) {
         try {
             await this.prisma.outlet.delete({

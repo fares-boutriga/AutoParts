@@ -9,7 +9,7 @@ import {
     Query,
     UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -28,6 +28,7 @@ export class ProductsController {
     @Post()
     @RequirePermissions('manage_products')
     @ApiOperation({ summary: 'Create new product' })
+    @ApiBody({ type: CreateProductDto })
     createProduct(@Body() createProductDto: CreateProductDto) {
         return this.productsService.createProduct(createProductDto);
     }
@@ -61,6 +62,7 @@ export class ProductsController {
     @Patch(':id')
     @RequirePermissions('manage_products')
     @ApiOperation({ summary: 'Update product' })
+    @ApiBody({ type: UpdateProductDto })
     updateProduct(
         @Param('id') id: string,
         @Body() updateProductDto: UpdateProductDto,
@@ -79,6 +81,7 @@ export class ProductsController {
     @Post('categories')
     @RequirePermissions('manage_products')
     @ApiOperation({ summary: 'Create category' })
+    @ApiBody({ type: CreateCategoryDto })
     createCategory(@Body() createCategoryDto: CreateCategoryDto) {
         return this.productsService.createCategory(createCategoryDto);
     }

@@ -1,5 +1,5 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -12,6 +12,7 @@ export class AuthController {
 
     @Post('register')
     @ApiOperation({ summary: 'Register a new user' })
+    @ApiBody({ type: RegisterDto })
     @ApiResponse({ status: 201, description: 'User successfully registered' })
     @ApiResponse({ status: 409, description: 'User already exists' })
     async register(@Body() registerDto: RegisterDto) {
@@ -21,6 +22,7 @@ export class AuthController {
     @Post('login')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Login user' })
+    @ApiBody({ type: LoginDto })
     @ApiResponse({ status: 200, description: 'Successfully logged in' })
     @ApiResponse({ status: 401, description: 'Invalid credentials' })
     async login(@Body() loginDto: LoginDto) {
@@ -30,6 +32,7 @@ export class AuthController {
     @Post('refresh')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Refresh access token' })
+    @ApiBody({ type: RefreshTokenDto })
     @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
     @ApiResponse({ status: 401, description: 'Invalid refresh token' })
     async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
@@ -39,6 +42,7 @@ export class AuthController {
     @Post('logout')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Logout user' })
+    @ApiBody({ type: RefreshTokenDto })
     @ApiResponse({ status: 200, description: 'Successfully logged out' })
     async logout(@Body() refreshTokenDto: RefreshTokenDto) {
         return this.authService.logout(refreshTokenDto.refreshToken);

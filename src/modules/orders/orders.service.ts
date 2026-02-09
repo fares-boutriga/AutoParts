@@ -4,20 +4,20 @@ import {
     BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { StockService } from '../stock/stock.service';
+import { StockAlertsService } from '../stock-alerts/stock-alerts.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 
 @Injectable()
 export class OrdersService {
     constructor(
         private prisma: PrismaService,
-        private stockService: StockService,
+        private stockAlertsService: StockAlertsService,
     ) { }
 
     async create(createOrderDto: CreateOrderDto, cashierId: string) {
         const { items, ...orderData } = createOrderDto;
 
-        // 1. Verify all stock is available
+        // 1. Verify all stock is available (pre-transaction validation)
         for (const item of items) {
             const stock = await this.prisma.stock.findUnique({
                 where: {
@@ -42,12 +42,7 @@ export class OrdersService {
             }
         }
 
-        // 2. Transaction: Create Order -> Create Items -> Deduct Stock
-        // Note: StockService.adjust() is not transactional by default, so we'll do manual updates in transaction
-        // Or simpler: Create order in transaction, then adjust stock sequentially (since we already checked availability)
-
-        // Better approach: Do it all in one prisma.$transaction
-
+        // 2. Transaction: Create Order -> Create Items -> Deduct Stock -> Create Alerts
         return this.prisma.$transaction(async (tx) => {
             // Create Order
             const order = await tx.order.create({
@@ -56,7 +51,7 @@ export class OrdersService {
                     cashierId: cashierId,
                     customerId: orderData.customerId,
                     paymentMethod: orderData.paymentMethod,
-                    totalAmount: createOrderDto.totalAmount, // Assuming backend trusts frontend calc, or re-calc here
+                    totalAmount: createOrderDto.totalAmount,
                     items: {
                         create: items.map((item) => ({
                             productId: item.productId,
@@ -74,9 +69,8 @@ export class OrdersService {
                 },
             });
 
-            // Deduct stock for each item
+            // Deduct stock and check for low stock alerts
             for (const item of items) {
-                // Find the stock record ID first
                 const stock = await tx.stock.findUnique({
                     where: {
                         productId_outletId: {
@@ -84,41 +78,50 @@ export class OrdersService {
                             outletId: orderData.outletId,
                         },
                     },
+                    include: {
+                        product: true,
+                        outlet: true,
+                    },
                 });
 
                 if (stock) {
-                    // We update using the service method if possible to trigger alerts?
-                    // Accessing service from within transaction is tricky because service uses this.prisma (not tx).
-                    // Strategy: Update DB in tx, then trigger alerts AFTER tx commits.
-
-                    await tx.stock.update({
+                    // Deduct stock quantity
+                    const updatedStock = await tx.stock.update({
                         where: { id: stock.id },
                         data: { quantity: { decrement: item.quantity } },
                     });
+
+                    // Check if stock is now below minimum level
+                    const effectiveMinLevel = updatedStock.minStockLevel ?? stock.product.minStockLevel;
+                    const newQuantity = updatedStock.quantity;
+
+                    if (newQuantity < effectiveMinLevel && stock.outlet.alertsEnabled) {
+                        // Check cooldown to avoid duplicate alerts
+                        const cooldownHours = 24; // Could be configurable
+                        const cooldownDate = new Date();
+                        cooldownDate.setHours(cooldownDate.getHours() - cooldownHours);
+
+                        const shouldAlert = !stock.lastAlertAt || stock.lastAlertAt < cooldownDate;
+
+                        if (shouldAlert) {
+                            // Create alert notification within transaction
+                            // Email will be sent asynchronously (fire and forget)
+                            await this.stockAlertsService.createStockAlert(
+                                stock.id,
+                                stock.product.name,
+                                newQuantity,
+                                effectiveMinLevel,
+                                stock.outlet.name,
+                                stock.outletId,
+                                stock.productId,
+                                stock.outlet.email,
+                                stock.outlet.alertsEnabled,
+                            );
+                        }
+                    }
                 }
             }
 
-            return order;
-        }).then(async (order) => {
-            // Post-transaction: Trigger alerts
-            // We need to find the stock IDs again or pass them through
-            for (const item of order.items) {
-                const stock = await this.prisma.stock.findUnique({
-                    where: { productId_outletId: { productId: item.productId, outletId: order.outletId } }
-                });
-                if (stock) {
-                    await this.stockService.adjust(stock.id, { adjustment: 0, reason: 'Alert Check' });
-                    // adjust(0) just to trigger the check logic in service, or call checkStockAfterUpdate directly if public
-                    // Actually stockService.adjust calls checkStockAfterUpdate.
-                    // But passing 0 might look like a no-op in logs? 
-                    // Better is to allow StockService to expose check method, or just use adjust(0).
-                    // Let's use the method we know works: updating via service triggers checks.
-                    // Since we already updated DB, we just need to trigger the check.
-                    // I can't access StockAlertService directly here easily without injecting it.
-                    // But StockService has it. 
-                    // Let's verify StockService implementation.
-                }
-            }
             return order;
         });
     }

@@ -53,6 +53,24 @@ export class StockService {
         });
     }
 
+    async findLowStock(outletId: string, threshold?: number) {
+        // Get all stock for the outlet with product details
+        const stocks = await this.prisma.stock.findMany({
+            where: { outletId },
+            include: {
+                product: { include: { category: true } },
+                outlet: true,
+            },
+        });
+
+        // Filter stocks that are below their minimum level
+        return stocks.filter((stock) => {
+            // Use outlet-specific minStockLevel if set, otherwise use product's minStockLevel
+            const effectiveMinLevel = threshold ?? stock.minStockLevel ?? stock.product.minStockLevel;
+            return stock.quantity < effectiveMinLevel;
+        });
+    }
+
     async findOne(outletId: string, productId: string) {
         const stock = await this.prisma.stock.findUnique({
             where: {

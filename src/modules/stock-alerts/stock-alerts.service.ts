@@ -130,7 +130,13 @@ export class StockAlertsService {
         );
     }
 
-    private async createStockAlert(
+    /**
+     * Create stock alert notification and send email
+     * This method is public so it can be called from OrdersService
+     * Notification creation is synchronous (for transaction safety)
+     * Email sending is asynchronous (fire and forget)
+     */
+    async createStockAlert(
         stockId: string,
         productName: string,
         currentQuantity: number,
@@ -142,7 +148,7 @@ export class StockAlertsService {
         alertsEnabled: boolean,
     ) {
         try {
-            // Create in-app notification
+            // Create in-app notification (synchronous - part of transaction)
             await this.prisma.notification.create({
                 data: {
                     type: 'STOCK_ALERT',
@@ -155,15 +161,18 @@ export class StockAlertsService {
 
             console.log(`📢 Created in-app notification for ${productName}`);
 
-            // Send email if configured
+            // Send email asynchronously (fire and forget - not part of transaction)
             if (alertsEnabled && outletEmail) {
-                await this.emailService.sendStockAlert(
+                // Don't await - let it run in background
+                this.emailService.sendStockAlert(
                     outletEmail,
                     productName,
                     currentQuantity,
                     minStockLevel,
                     outletName,
-                );
+                ).catch((error) => {
+                    console.error(`❌ Failed to send email alert:`, error);
+                });
             }
 
             // Update last alert timestamp
@@ -175,6 +184,7 @@ export class StockAlertsService {
             console.log(`✅ Stock alert processed for ${productName}`);
         } catch (error) {
             console.error(`❌ Failed to create stock alert:`, error);
+            throw error; // Re-throw to allow transaction rollback
         }
     }
 }

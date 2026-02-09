@@ -7,7 +7,7 @@ import {
     Query,
     UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -26,6 +26,7 @@ export class OrdersController {
     @Post()
     @RequirePermissions('sell_products')
     @ApiOperation({ summary: 'Create new order (POS)' })
+    @ApiBody({ type: CreateOrderDto })
     create(@Body() createOrderDto: CreateOrderDto, @CurrentUser() user: any) {
         return this.ordersService.create(createOrderDto, user.id);
     }
