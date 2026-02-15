@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { CreateCategoryDto } from './dto/create-category.dto';
 
 @Injectable()
 export class ProductsService {
@@ -19,7 +18,13 @@ export class ProductsService {
         categoryId?: string;
         isActive?: boolean;
         search?: string;
+        page?: number;
+        limit?: number;
     }) {
+        const page = Number(filters?.page) || 1;
+        const limit = Number(filters?.limit) || 10;
+        const skip = (page - 1) * limit;
+
         const where: any = {};
 
         if (filters?.categoryId) {
@@ -37,14 +42,29 @@ export class ProductsService {
             ];
         }
 
-        return this.prisma.product.findMany({
-            where,
-            include: {
-                category: true,
-                _count: { select: { stocks: true } },
+        const [data, total] = await Promise.all([
+            this.prisma.product.findMany({
+                where,
+                include: {
+                    category: true,
+                    _count: { select: { stocks: true } },
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.product.count({ where }),
+        ]);
+
+        return {
+            data,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
             },
-            orderBy: { name: 'asc' },
-        });
+        };
     }
 
     async findOneProduct(id: string) {
@@ -87,21 +107,5 @@ export class ProductsService {
         } catch {
             throw new NotFoundException('Product not found');
         }
-    }
-
-    // Categories
-    async createCategory(createCategoryDto: CreateCategoryDto) {
-        return this.prisma.category.create({
-            data: createCategoryDto,
-        });
-    }
-
-    async findAllCategories() {
-        return this.prisma.category.findMany({
-            include: {
-                _count: { select: { products: true } },
-            },
-            orderBy: { name: 'asc' },
-        });
     }
 }

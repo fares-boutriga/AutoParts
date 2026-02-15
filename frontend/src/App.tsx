@@ -6,9 +6,16 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import Dashboard from '@/pages/dashboard/Dashboard';
 import ProductList from '@/pages/products/ProductList';
 import ProductForm from '@/pages/products/ProductForm';
+import StockManagement from '@/pages/stock/StockManagement';
 import StockAlerts from '@/pages/stock/StockAlerts';
 import OrderList from '@/pages/orders/OrderList';
 import POS from '@/pages/pos/POS';
+import CustomerList from '@/pages/customers/CustomerList';
+import OutletList from '@/pages/outlets/OutletList';
+import UserList from '@/pages/users/UserList';
+import RoleList from '@/pages/roles/RoleList';
+import NotificationList from '@/pages/notifications/NotificationList';
+import CategoryList from '@/pages/categories/CategoryList';
 
 // Protected Route Guard
 const ProtectedRoute = () => {
@@ -33,13 +40,19 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<DashboardLayout />}>
           <Route index element={<Dashboard />} />
+          <Route path="pos" element={<POS />} />
           <Route path="products" element={<ProductList />} />
           <Route path="products/new" element={<ProductForm />} />
           <Route path="products/:id/edit" element={<ProductForm />} />
+          <Route path="categories" element={<CategoryList />} />
+          <Route path="stock" element={<StockManagement />} />
           <Route path="stock/alerts" element={<StockAlerts />} />
           <Route path="orders" element={<OrderList />} />
-          <Route path="pos" element={<POS />} />
-          {/* Add other dashboard routes here */}
+          <Route path="customers" element={<CustomerList />} />
+          <Route path="outlets" element={<OutletList />} />
+          <Route path="users" element={<UserList />} />
+          <Route path="roles" element={<RoleList />} />
+          <Route path="notifications" element={<NotificationList />} />
         </Route>
       </Route>
 

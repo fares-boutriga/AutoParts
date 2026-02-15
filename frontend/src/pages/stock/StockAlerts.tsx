@@ -14,7 +14,7 @@ import { CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function StockAlerts() {
-    const [page, setPage] = useState(1);
+    const [page] = useState(1);
     const { data, isLoading, isError } = useStockAlerts({ page, limit: 20 });
     const acknowledgeAlert = useAcknowledgeAlert();
 
@@ -37,7 +37,7 @@ export default function StockAlerts() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Product</TableHead>
-                            <TableHead>SKU</TableHead>
+                            <TableHead>Reference</TableHead>
                             <TableHead>Current Stock</TableHead>
                             <TableHead>Min Level</TableHead>
                             <TableHead>Status</TableHead>
@@ -49,13 +49,24 @@ export default function StockAlerts() {
                         {isLoading ? (
                             <TableRow>
                                 <TableCell colSpan={7} className="h-24 text-center">
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin inline" /> Loading...
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin inline text-primary" />
+                                    <span className="text-muted-foreground">Loading alerts...</span>
                                 </TableCell>
                             </TableRow>
-                        ) : data?.data.length === 0 ? (
+                        ) : !data?.data || data.data.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="h-24 text-center">
-                                    No alerts found.
+                                <TableCell colSpan={7} className="h-48 text-center">
+                                    <div className="flex flex-col items-center justify-center space-y-3">
+                                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                            <AlertTriangle className="h-6 w-6 text-primary" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="font-medium">No alerts found</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                All systems operational. No stock alerts at this time.
+                                            </p>
+                                        </div>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ) : (
@@ -67,7 +78,7 @@ export default function StockAlerts() {
                                             {alert.productName}
                                         </div>
                                     </TableCell>
-                                    <TableCell>{alert.sku}</TableCell>
+                                    <TableCell>{alert.reference}</TableCell>
                                     <TableCell className="text-red-600 font-bold">{alert.currentStock}</TableCell>
                                     <TableCell>{alert.minStockLevel}</TableCell>
                                     <TableCell>

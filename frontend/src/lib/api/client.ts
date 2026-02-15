@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '@/lib/auth/store';
 
 // Create API client instance with correct configurations
 const api = axios.create({
@@ -31,10 +32,10 @@ api.interceptors.response.use(
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
 
-            // Try to refresh token (if implemented) or logout
-            // For now, redirect to login
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
+            // Use the store's logout method to ensure state is properly cleared
+            useAuthStore.getState().logout();
+
+            // Redirect to login
             window.location.href = '/login';
         }
 

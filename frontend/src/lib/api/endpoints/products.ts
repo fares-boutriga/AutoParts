@@ -3,19 +3,17 @@ import api from '../client';
 export interface Product {
     id: string;
     name: string;
-    reference: string;
+    reference?: string;
     description?: string;
-    price: number;
-    costPrice?: number;
+    purchasePrice: number;
+    sellingPrice: number;
     minStockLevel: number;
-    sku: string;
     categoryId?: string;
-    supplierId?: string;
-    baseUnit?: string;
-    brand?: string;
-    location?: string;
-    minOrderQuantity?: number;
-    tags?: string[];
+    category?: {
+        id: string;
+        name: string;
+    };
+    supplier?: string;
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
@@ -24,16 +22,12 @@ export interface Product {
 export interface CreateProductDto {
     name: string;
     reference?: string;
-    description?: string;
-    price: number;
-    costPrice?: number;
-    minStockLevel?: number;
-    sku: string;
     categoryId?: string;
-    supplierId?: string;
-    brand?: string;
-    location?: string;
-    tags?: string[];
+    supplier?: string;
+    purchasePrice: number;
+    sellingPrice: number;
+    minStockLevel?: number;
+    isActive?: boolean;
 }
 
 export interface ProductQuery {

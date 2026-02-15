@@ -18,12 +18,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MoreHorizontal, Search, Loader2 } from 'lucide-react';
+import { Loader2, MoreHorizontal, TicketPercent, Search } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function OrderList() {
     const [search, setSearch] = useState('');
-    const [page, setPage] = useState(1);
+    const [page] = useState(1);
     const { data, isLoading, isError } = useOrders({ page, search, limit: 10 });
     const updateStatus = useUpdateOrderStatus();
 
@@ -78,13 +78,24 @@ export default function OrderList() {
                         {isLoading ? (
                             <TableRow>
                                 <TableCell colSpan={6} className="h-24 text-center">
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin inline" /> Loading...
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin inline text-primary" />
+                                    <span className="text-muted-foreground">Loading orders...</span>
                                 </TableCell>
                             </TableRow>
-                        ) : data?.data.length === 0 ? (
+                        ) : !data?.data || data.data.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="h-24 text-center">
-                                    No orders found.
+                                <TableCell colSpan={6} className="h-48 text-center">
+                                    <div className="flex flex-col items-center justify-center space-y-3">
+                                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                            <TicketPercent className="h-6 w-6 text-primary" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="font-medium">No orders found</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {search ? 'Try adjusting your search' : 'No orders have been placed yet'}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ) : (

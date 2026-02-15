@@ -38,18 +38,26 @@ export class ProductsController {
     @ApiQuery({ name: 'categoryId', required: false })
     @ApiQuery({ name: 'isActive', required: false })
     @ApiQuery({ name: 'search', required: false })
+    @ApiQuery({ name: 'page', required: false })
+    @ApiQuery({ name: 'limit', required: false })
     findAllProducts(
         @Query('categoryId') categoryId?: string,
         @Query('isActive') isActive?: string,
         @Query('search') search?: string,
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
     ) {
-        // Convert 'true'/'false' string to boolean if present
+        // Convert strings to appropriate types
         const isActiveBool = isActive === 'true' ? true : isActive === 'false' ? false : undefined;
+        const pageNum = page ? parseInt(page, 10) : undefined;
+        const limitNum = limit ? parseInt(limit, 10) : undefined;
 
         return this.productsService.findAllProducts({
             categoryId,
             isActive: isActiveBool,
             search,
+            page: pageNum,
+            limit: limitNum,
         });
     }
 
@@ -75,20 +83,5 @@ export class ProductsController {
     @ApiOperation({ summary: 'Soft delete product' })
     deleteProduct(@Param('id') id: string) {
         return this.productsService.deleteProduct(id);
-    }
-
-    // Categories
-    @Post('categories')
-    @RequirePermissions('manage_products')
-    @ApiOperation({ summary: 'Create category' })
-    @ApiBody({ type: CreateCategoryDto })
-    createCategory(@Body() createCategoryDto: CreateCategoryDto) {
-        return this.productsService.createCategory(createCategoryDto);
-    }
-
-    @Get('categories/all')
-    @ApiOperation({ summary: 'Get all categories' })
-    findAllCategories() {
-        return this.productsService.findAllCategories();
     }
 }

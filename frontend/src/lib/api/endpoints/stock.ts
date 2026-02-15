@@ -4,7 +4,7 @@ export interface StockAlert {
     id: string;
     productId: string;
     productName: string;
-    sku: string;
+    reference: string;
     currentStock: number;
     minStockLevel: number;
     status: 'PENDING' | 'ACKNOWLEDGED' | 'RESOLVED';

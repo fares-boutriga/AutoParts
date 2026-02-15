@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator'; // Need to create this
 import { Badge } from '@/components/ui/badge';
 import { Search, ShoppingCart, Trash2, Plus, Minus, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -13,9 +12,9 @@ import { toast } from 'react-hot-toast';
 interface CartItem {
     productId: string;
     name: string;
-    price: number;
+    sellingPrice: number;
     quantity: number;
-    sku: string;
+    reference: string;
 }
 
 export default function POS() {
@@ -39,9 +38,9 @@ export default function POS() {
                 {
                     productId: product.id,
                     name: product.name,
-                    price: product.price,
+                    sellingPrice: product.sellingPrice,
                     quantity: 1,
-                    sku: product.sku,
+                    reference: product.reference,
                 },
             ];
         });
@@ -64,7 +63,7 @@ export default function POS() {
     };
 
     const totalAmount = cart.reduce(
-        (sum, item) => sum + item.price * item.quantity,
+        (sum, item) => sum + item.sellingPrice * item.quantity,
         0
     );
 
@@ -76,7 +75,7 @@ export default function POS() {
                 items: cart.map((item) => ({
                     productId: item.productId,
                     quantity: item.quantity,
-                    unitPrice: item.price,
+                    unitPrice: item.sellingPrice,
                 })),
                 status: 'COMPLETED',
             });
@@ -105,9 +104,21 @@ export default function POS() {
                 <ScrollArea className="flex-1 rounded-md border p-4">
                     {isLoading ? (
                         <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>
+                    ) : !productsData?.data || productsData.data.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                            <div className="h-20 w-20 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                                <Search className="h-10 w-10 text-primary" />
+                            </div>
+                            <div className="text-center space-y-2">
+                                <p className="text-lg font-medium">No products found</p>
+                                <p className="text-sm text-muted-foreground">
+                                    {search ? 'Try a different search term' : 'Add products to get started'}
+                                </p>
+                            </div>
+                        </div>
                     ) : (
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {productsData?.data.map((product) => (
+                            {productsData.data.map((product) => (
                                 <Card
                                     key={product.id}
                                     className="cursor-pointer hover:bg-accent transition-colors"
@@ -117,9 +128,9 @@ export default function POS() {
                                         <div className="font-semibold truncate" title={product.name}>
                                             {product.name}
                                         </div>
-                                        <div className="text-sm text-muted-foreground">{product.sku}</div>
+                                        <div className="text-sm text-muted-foreground">{product.reference}</div>
                                         <div className="flex justify-between items-center mt-2">
-                                            <span className="font-bold">${product.price.toFixed(2)}</span>
+                                            <span className="font-bold">${Number(product.sellingPrice).toFixed(2)}</span>
                                             <Badge variant={product.minStockLevel > 0 ? "outline" : "destructive"}>
                                                 stock: {product.minStockLevel}
                                             </Badge>
@@ -151,7 +162,7 @@ export default function POS() {
                                 <div key={item.productId} className="flex gap-2 items-center">
                                     <div className="flex-1">
                                         <div className="font-medium text-sm line-clamp-1">{item.name}</div>
-                                        <div className="text-xs text-muted-foreground">${item.price.toFixed(2)}</div>
+                                        <div className="text-xs text-muted-foreground">${Number(item.sellingPrice).toFixed(2)}</div>
                                     </div>
 
                                     <div className="flex items-center gap-1">
@@ -175,7 +186,7 @@ export default function POS() {
                                     </div>
 
                                     <div className="w-16 text-right font-medium text-sm">
-                                        ${(item.price * item.quantity).toFixed(2)}
+                                        ${(Number(item.sellingPrice) * item.quantity).toFixed(2)}
                                     </div>
 
                                     <Button

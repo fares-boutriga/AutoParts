@@ -13,6 +13,7 @@ import { EmailModule } from './modules/email/email.module';
 import { StockAlertsModule } from './modules/stock-alerts/stock-alerts.module';
 import { UsersModule } from './modules/users/users.module';
 import { RolesModule } from './modules/roles/roles.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { RolesModule } from './modules/roles/roles.module';
     AuthModule,
     UsersModule,
     RolesModule,
+    CategoriesModule,
     OutletsModule,
     ProductsModule,
     StockModule,
