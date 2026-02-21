@@ -35,11 +35,23 @@ export class OrdersController {
     @ApiOperation({ summary: 'Get all orders' })
     @ApiQuery({ name: 'outletId', required: false })
     @ApiQuery({ name: 'cashierId', required: false })
+    @ApiQuery({ name: 'page', required: false, type: Number })
+    @ApiQuery({ name: 'limit', required: false, type: Number })
+    @ApiQuery({ name: 'search', required: false, type: String })
     findAll(
         @Query('outletId') outletId?: string,
         @Query('cashierId') cashierId?: string,
+        @Query('page') page?: number,
+        @Query('limit') limit?: number,
+        @Query('search') search?: string,
     ) {
-        return this.ordersService.findAll({ outletId, cashierId });
+        return this.ordersService.findAll({
+            outletId,
+            cashierId,
+            page,
+            limit,
+            search,
+        });
     }
 
     @Get(':id')

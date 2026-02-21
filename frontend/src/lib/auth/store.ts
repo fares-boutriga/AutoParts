@@ -6,6 +6,12 @@ interface User {
     email: string;
     name: string;
     role: string;
+    outlets?: {
+        outlet: {
+            id: string;
+            name: string;
+        };
+    }[];
 }
 
 interface AuthState {

@@ -74,6 +74,11 @@ export class AuthService {
                         },
                     },
                 },
+                outlets: {
+                    include: {
+                        outlet: true,
+                    },
+                },
             },
         });
 

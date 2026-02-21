@@ -126,21 +126,53 @@ export class OrdersService {
         });
     }
 
-    async findAll(filters?: { outletId?: string; cashierId?: string }) {
+    async findAll(filters?: {
+        outletId?: string;
+        cashierId?: string;
+        page?: number;
+        limit?: number;
+        search?: string;
+    }) {
+        const page = Number(filters?.page) || 1;
+        const limit = Number(filters?.limit) || 10;
+        const skip = (page - 1) * limit;
+
         const where: any = {};
         if (filters?.outletId) where.outletId = filters.outletId;
         if (filters?.cashierId) where.cashierId = filters.cashierId;
 
-        return this.prisma.order.findMany({
-            where,
-            include: {
-                outlet: true,
-                cashier: { select: { id: true, name: true } },
-                customer: true,
-                _count: { select: { items: true } },
+        if (filters?.search) {
+            where.OR = [
+                { id: { contains: filters.search, mode: 'insensitive' } },
+                { customer: { name: { contains: filters.search, mode: 'insensitive' } } },
+            ];
+        }
+
+        const [data, total] = await Promise.all([
+            this.prisma.order.findMany({
+                where,
+                include: {
+                    outlet: true,
+                    cashier: { select: { id: true, name: true } },
+                    customer: true,
+                    _count: { select: { items: true } },
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.order.count({ where }),
+        ]);
+
+        return {
+            data,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
             },
-            orderBy: { createdAt: 'desc' },
-        });
+        };
     }
 
     async findOne(id: string) {

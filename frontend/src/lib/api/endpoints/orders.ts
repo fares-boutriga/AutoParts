@@ -23,13 +23,16 @@ export interface Order {
 }
 
 export interface CreateOrderDto {
+    outletId: string;
     customerId?: string;
+    totalAmount: number;
+    paymentMethod: string;
     items: {
         productId: string;
         quantity: number;
         unitPrice: number;
+        subtotal: number;
     }[];
-    status?: 'PENDING' | 'COMPLETED' | 'CANCELLED';
 }
 
 export interface OrderQuery {
