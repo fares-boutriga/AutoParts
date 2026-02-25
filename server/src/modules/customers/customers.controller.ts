@@ -7,8 +7,9 @@ import {
     Param,
     Delete,
     UseGuards,
+    Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
@@ -21,7 +22,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('customers')
 export class CustomersController {
-    constructor(private customersService: CustomersService) { }
+    constructor(private readonly customersService: CustomersService) { }
 
     @Post()
     @RequirePermissions('manage_customers')
@@ -31,30 +32,38 @@ export class CustomersController {
     }
 
     @Get()
-    @ApiOperation({ summary: 'Get all customers' })
-    findAll() {
-        return this.customersService.findAll();
+    @ApiOperation({ summary: 'Get all customers with search and pagination' })
+    @ApiQuery({ name: 'search', required: false })
+    @ApiQuery({ name: 'page', required: false, type: Number })
+    @ApiQuery({ name: 'limit', required: false, type: Number })
+    findAll(
+        @Query('search') search?: string,
+        @Query('page') page?: number,
+        @Query('limit') limit?: number,
+    ) {
+        return this.customersService.findAll({
+            search,
+            page: Number(page) || 1,
+            limit: Number(limit) || 20
+        });
     }
 
     @Get(':id')
-    @ApiOperation({ summary: 'Get customer by ID' })
+    @ApiOperation({ summary: 'Get customer by ID with full order history' })
     findOne(@Param('id') id: string) {
         return this.customersService.findOne(id);
     }
 
     @Patch(':id')
     @RequirePermissions('manage_customers')
-    @ApiOperation({ summary: 'Update customer' })
-    update(
-        @Param('id') id: string,
-        @Body() updateCustomerDto: UpdateCustomerDto,
-    ) {
+    @ApiOperation({ summary: 'Update customer details' })
+    update(@Param('id') id: string, @Body() updateCustomerDto: UpdateCustomerDto) {
         return this.customersService.update(id, updateCustomerDto);
     }
 
     @Delete(':id')
     @RequirePermissions('manage_customers')
-    @ApiOperation({ summary: 'Delete customer' })
+    @ApiOperation({ summary: 'Delete customer and their history' })
     remove(@Param('id') id: string) {
         return this.customersService.remove(id);
     }

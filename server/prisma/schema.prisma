@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,10 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================
-// Users & Authentication
-// ============================================
-
 model User {
   id            String         @id @default(uuid())
   email         String         @unique
@@ -21,12 +14,12 @@ model User {
   name          String
   phone         String?
   isActive      Boolean        @default(true)
-  roles         UserRole[]
-  outlets       UserOutlet[]
-  orders        Order[]
-  refreshTokens RefreshToken[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  orders        Order[]
+  refreshTokens RefreshToken[]
+  outlets       UserOutlet[]
+  roles         UserRole[]
 
   @@map("users")
 }
@@ -36,20 +29,20 @@ model Role {
   name        String           @unique
   description String?
   isCustom    Boolean          @default(false)
-  users       UserRole[]
-  permissions RolePermission[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+  permissions RolePermission[]
+  users       UserRole[]
 
   @@map("roles")
 }
 
 model Permission {
   id          String           @id @default(uuid())
-  name        String           @unique // e.g., 'manage_products', 'sell_products'
+  name        String           @unique
   description String?
-  roles       RolePermission[]
   createdAt   DateTime         @default(now())
+  roles       RolePermission[]
 
   @@map("permissions")
 }
@@ -57,9 +50,9 @@ model Permission {
 model UserRole {
   userId     String
   roleId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
   assignedAt DateTime @default(now())
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, roleId])
   @@map("user_roles")
@@ -68,8 +61,8 @@ model UserRole {
 model RolePermission {
   roleId       String
   permissionId String
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@id([roleId, permissionId])
   @@map("role_permissions")
@@ -79,30 +72,26 @@ model RefreshToken {
   id        String   @id @default(uuid())
   token     String   @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("refresh_tokens")
 }
-
-// ============================================
-// Outlets
-// ============================================
 
 model Outlet {
   id            String         @id @default(uuid())
   name          String
   address       String?
   phone         String?
-  email         String? // For stock alerts
+  email         String?
   alertsEnabled Boolean        @default(true)
-  users         UserOutlet[]
-  stocks        Stock[]
-  orders        Order[]
-  notifications Notification[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  notifications Notification[]
+  orders        Order[]
+  stocks        Stock[]
+  users         UserOutlet[]
 
   @@map("outlets")
 }
@@ -110,23 +99,19 @@ model Outlet {
 model UserOutlet {
   userId   String
   outletId String
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   outlet   Outlet @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, outletId])
   @@map("user_outlets")
 }
 
-// ============================================
-// Products & Inventory
-// ============================================
-
 model Category {
   id        String    @id @default(uuid())
   name      String    @unique
-  products  Product[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  products  Product[]
 
   @@map("categories")
 }
@@ -134,19 +119,19 @@ model Category {
 model Product {
   id            String         @id @default(uuid())
   name          String
-  reference     String? // OEM code
+  reference     String?
   categoryId    String?
-  category      Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   supplier      String?
   purchasePrice Decimal        @db.Decimal(10, 2)
   sellingPrice  Decimal        @db.Decimal(10, 2)
-  minStockLevel Int            @default(10) // Global minimum
+  minStockLevel Int            @default(10)
   isActive      Boolean        @default(true)
-  stocks        Stock[]
-  orderItems    OrderItem[]
-  notifications Notification[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  notifications Notification[]
+  orderItems    OrderItem[]
+  category      Category?      @relation(fields: [categoryId], references: [id])
+  stocks        Stock[]
 
   @@map("products")
 }
@@ -155,30 +140,26 @@ model Stock {
   id            String    @id @default(uuid())
   productId     String
   outletId      String
-  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  outlet        Outlet    @relation(fields: [outletId], references: [id], onDelete: Cascade)
   quantity      Int       @default(0)
-  minStockLevel Int? // Outlet-specific override
-  lastAlertAt   DateTime? // Track last alert to avoid spam
+  minStockLevel Int?
+  lastAlertAt   DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  outlet        Outlet    @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, outletId])
   @@map("stocks")
 }
-
-// ============================================
-// Orders & Sales
-// ============================================
 
 model Customer {
   id        String   @id @default(uuid())
   name      String
   phone     String?
   email     String?
-  orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  orders    Order[]
 
   @@map("customers")
 }
@@ -188,15 +169,15 @@ model Order {
   outletId      String
   cashierId     String
   customerId    String?
-  outlet        Outlet      @relation(fields: [outletId], references: [id])
-  cashier       User        @relation(fields: [cashierId], references: [id])
-  customer      Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  items         OrderItem[]
   totalAmount   Decimal     @db.Decimal(10, 2)
-  paymentMethod String // 'cash', 'card', 'credit'
-  status        String      @default("completed") // 'completed', 'cancelled'
+  paymentMethod String
+  status        String      @default("completed")
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+  items         OrderItem[]
+  cashier       User        @relation(fields: [cashierId], references: [id])
+  customer      Customer?   @relation(fields: [customerId], references: [id])
+  outlet        Outlet      @relation(fields: [outletId], references: [id])
 
   @@map("orders")
 }
@@ -205,29 +186,25 @@ model OrderItem {
   id        String  @id @default(uuid())
   orderId   String
   productId String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product @relation(fields: [productId], references: [id])
   quantity  Int
   unitPrice Decimal @db.Decimal(10, 2)
   subtotal  Decimal @db.Decimal(10, 2)
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
 
   @@map("order_items")
 }
 
-// ============================================
-// Notifications
-// ============================================
-
 model Notification {
   id        String   @id @default(uuid())
-  type      String   @default("STOCK_ALERT") // Extensible for future types
+  type      String   @default("STOCK_ALERT")
   message   String
   outletId  String
   productId String?
-  outlet    Outlet   @relation(fields: [outletId], references: [id], onDelete: Cascade)
-  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   seen      Boolean  @default(false)
   createdAt DateTime @default(now())
+  outlet    Outlet   @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  product   Product? @relation(fields: [productId], references: [id])
 
   @@map("notifications")
 }

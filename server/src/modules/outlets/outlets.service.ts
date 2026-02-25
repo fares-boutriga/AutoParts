@@ -8,9 +8,24 @@ export class OutletsService {
     constructor(private prisma: PrismaService) { }
 
     async create(createOutletDto: CreateOutletDto) {
-        return this.prisma.outlet.create({
+        const outlet = await this.prisma.outlet.create({
             data: createOutletDto,
         });
+
+        // Initialize stock records for all products
+        const products = await this.prisma.product.findMany({ select: { id: true, minStockLevel: true } });
+        if (products.length > 0) {
+            await this.prisma.stock.createMany({
+                data: products.map(product => ({
+                    productId: product.id,
+                    outletId: outlet.id,
+                    quantity: 0,
+                    minStockLevel: product.minStockLevel || 5,
+                })),
+            });
+        }
+
+        return outlet;
     }
 
     async findAll() {

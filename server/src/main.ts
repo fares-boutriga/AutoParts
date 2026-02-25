@@ -38,6 +38,7 @@ async function bootstrap() {
     .addTag('Products')
     .addTag('Stock')
     .addTag('Orders')
+    .addTag('Orders')
     .addTag('Customers')
     .addTag('Notifications')
     .build();

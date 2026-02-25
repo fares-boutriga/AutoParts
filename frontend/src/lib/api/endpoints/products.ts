@@ -15,6 +15,7 @@ export interface Product {
     };
     supplier?: string;
     isActive: boolean;
+    totalQuantity: number;
     createdAt: string;
     updatedAt: string;
 }

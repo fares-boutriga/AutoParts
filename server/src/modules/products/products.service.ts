@@ -7,32 +7,36 @@ import { UpdateProductDto } from './dto/update-product.dto';
 export class ProductsService {
     constructor(private prisma: PrismaService) { }
 
-    async createProduct(createProductDto: CreateProductDto) {
-        return this.prisma.product.create({
+    async create(createProductDto: CreateProductDto) {
+        const product = await this.prisma.product.create({
             data: createProductDto,
-            include: { category: true },
         });
+
+        // Initialize stock records for all outlets
+        const outlets = await this.prisma.outlet.findMany({ select: { id: true } });
+        if (outlets.length > 0) {
+            await this.prisma.stock.createMany({
+                data: outlets.map(outlet => ({
+                    productId: product.id,
+                    outletId: outlet.id,
+                    quantity: 0,
+                    minStockLevel: product.minStockLevel || 5,
+                })),
+            });
+        }
+
+        return product;
     }
 
-    async findAllProducts(filters?: {
-        categoryId?: string;
-        isActive?: boolean;
-        search?: string;
-        page?: number;
-        limit?: number;
-    }) {
-        const page = Number(filters?.page) || 1;
-        const limit = Number(filters?.limit) || 10;
+    async findAll(filters?: { categoryId?: string; search?: string; page?: number; limit?: number }) {
+        const page = filters?.page || 1;
+        const limit = filters?.limit || 20;
         const skip = (page - 1) * limit;
 
         const where: any = {};
 
         if (filters?.categoryId) {
             where.categoryId = filters.categoryId;
-        }
-
-        if (filters?.isActive !== undefined) {
-            where.isActive = filters.isActive;
         }
 
         if (filters?.search) {
@@ -42,12 +46,12 @@ export class ProductsService {
             ];
         }
 
-        const [data, total] = await Promise.all([
+        const [rawProducts, total] = await Promise.all([
             this.prisma.product.findMany({
                 where,
                 include: {
                     category: true,
-                    _count: { select: { stocks: true } },
+                    stocks: { select: { quantity: true } },
                 },
                 orderBy: { createdAt: 'desc' },
                 skip,
@@ -55,6 +59,13 @@ export class ProductsService {
             }),
             this.prisma.product.count({ where }),
         ]);
+
+        const data = rawProducts.map(product => {
+            const { stocks, ...rest } = (product as any);
+            const totalQuantity = stocks.reduce((sum: number, s: any) => sum + s.quantity, 0);
+            const isStocked = stocks.length > 0;
+            return { ...rest, totalQuantity, isStocked };
+        });
 
         return {
             data,
@@ -67,13 +78,15 @@ export class ProductsService {
         };
     }
 
-    async findOneProduct(id: string) {
+    async findOne(id: string) {
         const product = await this.prisma.product.findUnique({
             where: { id },
             include: {
                 category: true,
                 stocks: {
-                    include: { outlet: true },
+                    include: {
+                        outlet: true,
+                    },
                 },
             },
         });
@@ -85,26 +98,24 @@ export class ProductsService {
         return product;
     }
 
-    async updateProduct(id: string, updateProductDto: UpdateProductDto) {
+    async update(id: string, updateProductDto: UpdateProductDto) {
         try {
             return await this.prisma.product.update({
                 where: { id },
                 data: updateProductDto,
-                include: { category: true },
             });
-        } catch {
+        } catch (error) {
             throw new NotFoundException('Product not found');
         }
     }
 
-    async deleteProduct(id: string) {
+    async remove(id: string) {
         try {
-            // Soft delete
-            return await this.prisma.product.update({
+            await this.prisma.product.delete({
                 where: { id },
-                data: { isActive: false },
             });
-        } catch {
+            return { message: 'Product deleted successfully' };
+        } catch (error) {
             throw new NotFoundException('Product not found');
         }
     }
