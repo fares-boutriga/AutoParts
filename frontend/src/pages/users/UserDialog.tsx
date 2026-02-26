@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import {
     Dialog,
     DialogContent,
@@ -12,8 +12,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
-import { useCreateUser, useUpdateUser } from '@/hooks/useUsers';
+import { useCreateUser, useUpdateUser, useAssignRoles } from '@/hooks/useUsers';
+import { useRoles } from '@/hooks/useRoles';
 import type { User } from '@/lib/api/endpoints/users';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 interface UserDialogProps {
     open: boolean;
@@ -27,6 +35,7 @@ interface UserFormData {
     phone?: string;
     password?: string;
     confirmPassword?: string;
+    roleId?: string;
 }
 
 export default function UserDialog({ open, onOpenChange, user }: UserDialogProps) {
@@ -34,30 +43,52 @@ export default function UserDialog({ open, onOpenChange, user }: UserDialogProps
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const isEditing = !!user;
 
+    // Get current primary role if editing
+    const currentRoleId = user?.roles?.[0]?.role?.id;
+
     const {
         register,
         handleSubmit,
         formState: { errors },
         reset,
         watch,
+        control,
     } = useForm<UserFormData>({
         defaultValues: user
             ? {
                 name: user.name,
                 email: user.email,
                 phone: user.phone || '',
+                roleId: currentRoleId || '',
             }
             : {},
     });
 
+    useEffect(() => {
+        if (open) {
+            reset(user ? {
+                name: user.name,
+                email: user.email,
+                phone: user.phone || '',
+                roleId: user?.roles?.[0]?.role?.id || '',
+            } : {
+                name: '', email: '', phone: '', roleId: '', password: '', confirmPassword: ''
+            });
+        }
+    }, [open, user, reset]);
+
     const createUser = useCreateUser();
     const updateUser = useUpdateUser();
+    const assignRoles = useAssignRoles();
+    const { data: roles, isLoading: rolesLoading } = useRoles();
 
     const password = watch('password');
 
     const onSubmit = async (data: UserFormData) => {
         try {
-            if (isEditing) {
+            let targetUserId = user?.id;
+
+            if (isEditing && targetUserId) {
                 const updateData: any = {
                     name: data.name,
                     email: data.email,
@@ -66,18 +97,34 @@ export default function UserDialog({ open, onOpenChange, user }: UserDialogProps
                 if (data.password) {
                     updateData.password = data.password;
                 }
-                await updateUser.mutateAsync({ id: user.id, data: updateData });
+                await updateUser.mutateAsync({ id: targetUserId, data: updateData });
             } else {
                 if (!data.password) {
                     return;
                 }
-                await createUser.mutateAsync({
+                const newUser = await createUser.mutateAsync({
                     name: data.name,
                     email: data.email,
                     phone: data.phone || undefined,
                     password: data.password,
                 });
+                targetUserId = newUser.id;
             }
+
+            // After successful creation/update, assign role if selected
+            if (targetUserId && data.roleId) {
+                await assignRoles.mutateAsync({
+                    id: targetUserId,
+                    roleIds: [data.roleId]
+                });
+            } else if (targetUserId && !data.roleId && isEditing && currentRoleId) {
+                // If they cleared the role, we send empty array
+                await assignRoles.mutateAsync({
+                    id: targetUserId,
+                    roleIds: []
+                });
+            }
+
             reset();
             onOpenChange(false);
         } catch (error) {
@@ -140,6 +187,29 @@ export default function UserDialog({ open, onOpenChange, user }: UserDialogProps
                             id="phone"
                             {...register('phone')}
                             placeholder="+1234567890"
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="roleId">Role</Label>
+                        <Controller
+                            control={control}
+                            name="roleId"
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                                    <SelectTrigger disabled={rolesLoading}>
+                                        <SelectValue placeholder="Select a role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none" className="text-muted-foreground italic">No Role (Default)</SelectItem>
+                                        {roles?.map((role) => (
+                                            <SelectItem key={role.id} value={role.id}>
+                                                {role.name} {role.isCustom && '(Custom)'}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
                         />
                     </div>
 
@@ -217,9 +287,9 @@ export default function UserDialog({ open, onOpenChange, user }: UserDialogProps
                         </Button>
                         <Button
                             type="submit"
-                            disabled={createUser.isPending || updateUser.isPending}
+                            disabled={createUser.isPending || updateUser.isPending || assignRoles.isPending}
                         >
-                            {(createUser.isPending || updateUser.isPending) && (
+                            {(createUser.isPending || updateUser.isPending || assignRoles.isPending) && (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             )}
                             {isEditing ? 'Update' : 'Create'}
