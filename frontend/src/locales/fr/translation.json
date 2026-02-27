@@ -1,0 +1,12 @@
+{
+    "header": {
+        "systemContext": "Contexte Système",
+        "dashboard": "Tableau de Bord",
+        "notifications": "Notifications",
+        "authorizedUser": "Utilisateur Autorisé",
+        "administrator": "Administrateur",
+        "accountAccess": "Accès au Compte",
+        "profileSettings": "Paramètres du Profil",
+        "terminateSession": "Terminer la Session"
+    }
+}

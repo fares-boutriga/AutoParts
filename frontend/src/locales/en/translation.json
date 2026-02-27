@@ -1,0 +1,12 @@
+{
+  "header": {
+    "systemContext": "System Context",
+    "dashboard": "Dashboard",
+    "notifications": "Notifications",
+    "authorizedUser": "Authorized User",
+    "administrator": "Administrator",
+    "accountAccess": "Account Access",
+    "profileSettings": "Profile Settings",
+    "terminateSession": "Terminate Session"
+  }
+}
