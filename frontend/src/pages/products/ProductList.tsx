@@ -32,8 +32,10 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 export default function ProductList() {
+    const { t } = useTranslation();
     const [search, setSearch] = useState('');
     const [page] = useState(1);
     const { data, isLoading, isError } = useProducts({ page, search, limit: 10 });
@@ -70,16 +72,16 @@ export default function ProductList() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div className="space-y-1">
                     <h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-gradient-x">
-                        Product Inventory
+                        {t('products.title')}
                     </h1>
                     <p className="text-slate-500 dark:text-slate-400 font-medium">
-                        Manage your wholesale parts and monitor stock levels in real-time.
+                        {t('products.subtitle')}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Button asChild className="rounded-xl px-6 bg-gradient-to-r from-primary to-secondary text-white shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all duration-300">
                         <Link to="/products/new">
-                            <Plus className="mr-2 h-5 w-5" /> Add New Product
+                            <Plus className="mr-2 h-5 w-5" /> {t('products.addBtn')}
                         </Link>
                     </Button>
                 </div>
@@ -88,9 +90,9 @@ export default function ProductList() {
             {/* Quick Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 {[
-                    { label: 'Total Products', value: totalProducts, icon: Package, color: 'primary' },
-                    { label: 'Low Stock Items', value: lowStockCount, icon: AlertTriangle, color: 'amber' },
-                    { label: 'Active Status', value: activeProducts, icon: CheckCircle2, color: 'emerald' },
+                    { label: t('products.stats.total'), value: totalProducts, icon: Package, color: 'primary' },
+                    { label: t('products.stats.lowStock'), value: lowStockCount, icon: AlertTriangle, color: 'amber' },
+                    { label: t('products.stats.active'), value: activeProducts, icon: CheckCircle2, color: 'emerald' },
                 ].map((stat, i) => (
                     <Card key={i} className="border-none shadow-xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl group hover:scale-[1.02] transition-all duration-300">
                         <CardContent className="p-6 flex items-center justify-between">
@@ -117,7 +119,7 @@ export default function ProductList() {
                         <div className="relative flex-1 group">
                             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-primary transition-colors" />
                             <Input
-                                placeholder="Filter products by name, reference or supplier..."
+                                placeholder={t('products.search')}
                                 className="pl-11 h-12 bg-slate-50/50 dark:bg-slate-800/50 border-none rounded-2xl ring-offset-background placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all font-medium"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
@@ -129,13 +131,13 @@ export default function ProductList() {
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-slate-50/50 dark:bg-slate-800/50 border-none hover:bg-slate-50/50">
-                                <TableHead className="py-4 pl-8 font-bold text-slate-700 dark:text-slate-300">Reference</TableHead>
-                                <TableHead className="py-4 font-bold text-slate-700 dark:text-slate-300">Product Identity</TableHead>
-                                <TableHead className="py-4 font-bold text-slate-700 dark:text-slate-300">Category</TableHead>
-                                <TableHead className="py-4 font-bold text-slate-700 dark:text-slate-300">Pricing</TableHead>
-                                <TableHead className="py-4 font-bold text-slate-700 dark:text-slate-300">Stock Status</TableHead>
-                                <TableHead className="py-4 font-bold text-slate-700 dark:text-slate-300 text-center">Visibility</TableHead>
-                                <TableHead className="py-4 pr-8 text-right font-bold text-slate-700 dark:text-slate-300">Options</TableHead>
+                                <TableHead className="py-4 pl-8 font-bold text-slate-700 dark:text-slate-300">{t('products.table.ref')}</TableHead>
+                                <TableHead className="py-4 font-bold text-slate-700 dark:text-slate-300">{t('products.table.identity')}</TableHead>
+                                <TableHead className="py-4 font-bold text-slate-700 dark:text-slate-300">{t('products.table.category')}</TableHead>
+                                <TableHead className="py-4 font-bold text-slate-700 dark:text-slate-300">{t('products.table.pricing')}</TableHead>
+                                <TableHead className="py-4 font-bold text-slate-700 dark:text-slate-300">{t('products.table.stock')}</TableHead>
+                                <TableHead className="py-4 font-bold text-slate-700 dark:text-slate-300 text-center">{t('products.table.visibility')}</TableHead>
+                                <TableHead className="py-4 pr-8 text-right font-bold text-slate-700 dark:text-slate-300">{t('products.table.options')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>

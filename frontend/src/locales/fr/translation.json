@@ -8,5 +8,279 @@
         "accountAccess": "Accès au Compte",
         "profileSettings": "Paramètres du Profil",
         "terminateSession": "Terminer la Session"
+    },
+    "sidebar": {
+        "commerce": "Commerce",
+        "dashboard": "Tableau de Bord",
+        "pos": "Terminal PDV",
+        "orders": "Commandes & Ventes",
+        "inventory": "Inventaire",
+        "catalog": "Catalogue Produits",
+        "categories": "Catégories",
+        "stock": "Niveaux de Stock",
+        "people": "Personnes & Lieux",
+        "crm": "Clients CRM",
+        "outlets": "Points de Vente",
+        "system": "Système",
+        "staff": "Utilisateurs (Personnel)",
+        "permissions": "Permissions",
+        "alerts": "Centre d'alertes",
+        "endSession": "Terminer la Session"
+    },
+    "products": {
+        "title": "Inventaire des Produits",
+        "subtitle": "Gérez vos pièces de gros et surveillez les niveaux de stock en temps réel.",
+        "addBtn": "Ajouter un Produit",
+        "stats": {
+            "total": "Total Produits",
+            "lowStock": "Articles en Stock Faible",
+            "active": "Statut Actif"
+        },
+        "search": "Filtrer les produits par nom, référence ou fournisseur...",
+        "table": {
+            "ref": "Référence",
+            "identity": "Identité Produit",
+            "category": "Catégorie",
+            "pricing": "Prix",
+            "stock": "État du Stock",
+            "visibility": "Visibilité",
+            "options": "Options"
+        }
+    },
+    "dashboard_page": {
+        "totalRevenue": "Revenu Total",
+        "fromLastMonth": "depuis le mois dernier",
+        "activeOrders": "Commandes Actives",
+        "productsInStock": "Produits en Stock",
+        "lowStockAlerts": "Alertes de Stock Faible",
+        "requiresAttention": "Nécessite une attention",
+        "recentSales": {
+            "title": "Ventes Récentes",
+            "empty": "Les transactions récentes apparaîtront ici",
+            "emptySub": "Commencez à faire des ventes pour voir l'activité"
+        }
+    },
+    "pos_page": {
+        "toast": {
+            "outOfStock": "Produit en rupture de stock",
+            "exceedsStock": "Ne peut pas ajouter plus que le stock disponible",
+            "exceedsAvailable": "Dépasse le stock disponible",
+            "cartEmpty": "Le panier est vide",
+            "noOutlet": "Aucun point de vente attribué à votre compte",
+            "success": "Commande terminée avec succès !",
+            "error": "Échec du traitement de la commande"
+        },
+        "partsSelection": "Sélection de Pièces",
+        "searchPlaceholder": "Rechercher des pièces ou référence...",
+        "noProducts": "Aucun produit trouvé",
+        "inStock": "en stock",
+        "shoppingCart": "Panier d'Achats",
+        "itemsCount": "articles",
+        "walkInCustomer": "Client de Passage",
+        "selectCustomer": "Sélectionner un client (Optionnel)",
+        "cartEmpty": "Le panier est vide",
+        "subtotal": "Sous-total",
+        "totalAmount": "Montant Total",
+        "saveDraft": "Enregistrer Brouillon",
+        "payComplete": "Payer & Compléter",
+        "infoText": "Assurez-vous de bien vérifier les références des produits avant de terminer la commande."
+    },
+    "orders_page": {
+        "title": "Gestion des Commandes",
+        "subtitle": "Surveillez et gérez toutes les ventes et transactions des clients.",
+        "search": "Rechercher par ID ou client...",
+        "error": "Erreur lors du chargement des commandes. Veuillez réessayer.",
+        "retry": "Réessayer",
+        "fetching": "Récupération de l'historique des transactions...",
+        "noOrders": "Aucune commande trouvée.",
+        "noOrdersSearch": "Essayez d'ajuster vos filtres de recherche.",
+        "noOrdersEmpty": "Les ventes apparaîtront ici une fois les transactions effectuées.",
+        "walkIn": "Client de Passage",
+        "table": {
+            "id": "ID Commande",
+            "customer": "Client",
+            "amount": "Montant Total",
+            "status": "Statut",
+            "date": "Date",
+            "actions": "Actions"
+        },
+        "actions": {
+            "changeStatus": "Changer le Statut",
+            "completed": "Marquer comme Terminé",
+            "pending": "Marquer comme En Attente",
+            "cancelled": "Marquer comme Annulé"
+        },
+        "status": {
+            "completed": "TERMINÉ",
+            "pending": "EN ATTENTE",
+            "cancelled": "ANNULÉ",
+            "unknown": "INCONNU"
+        }
+    },
+    "categories_page": {
+        "title": "Catégories",
+        "subtitle": "Gérez vos catégories de produits",
+        "addBtn": "Ajouter une Catégorie",
+        "search": "Rechercher des catégories...",
+        "loading": "Chargement...",
+        "empty": "Aucune catégorie trouvée.",
+        "deleteConfirm": "Voulez-vous vraiment supprimer cette catégorie ?",
+        "table": {
+            "name": "Nom",
+            "count": "Nombre de Produits",
+            "date": "Créé le",
+            "actions": "Actions"
+        },
+        "actions": {
+            "edit": "Modifier",
+            "delete": "Supprimer"
+        },
+        "form": {
+            "editTitle": "Modifier la Catégorie",
+            "addTitle": "Ajouter une Catégorie",
+            "nameLabel": "Nom de la Catégorie",
+            "namePlaceholder": "ex: Pièces de Moteur",
+            "nameRequired": "Le nom est requis",
+            "cancel": "Annuler",
+            "update": "Mettre à jour",
+            "create": "Créer"
+        }
+    },
+    "stock_alerts": {
+        "toast": {
+            "ackSuccess": "Alerte reconnue",
+            "ackError": "Échec de la reconnaissance de l'alerte"
+        },
+        "errorTitle": "Erreur lors du chargement des alertes",
+        "retry": "Réessayer",
+        "title": "Surveillance des Stocks",
+        "subtitle": "Alertes en temps réel pour de bas niveaux de stock et perturbations d'inventaire.",
+        "refresh": "Actualiser",
+        "criticalTitle": "Alertes Critiques",
+        "criticalDesc": "Nécessite une attention immédiate",
+        "resolvedTitle": "Résolu Aujourd'hui",
+        "resolvedDesc": "Marqué comme résolu",
+        "tableTitle": "Avertissements d'Inventaire",
+        "tableDesc": "Affichage de toutes les notifications de stock actives et récemment résolues.",
+        "table": {
+            "severity": "Sévérité",
+            "productInfo": "Informations du Produit",
+            "stockStatus": "Statut du Stock",
+            "message": "Message d'Alerte",
+            "time": "Heure",
+            "actions": "Actions"
+        },
+        "scanning": "Analyse des journaux d'inventaire...",
+        "allStocked": "Tout est en stock !",
+        "noAlerts": "Aucune alerte de rupture de stock détectée pour le moment.",
+        "badges": {
+            "critical": "Critique",
+            "resolved": "Résolu"
+        },
+        "actions": {
+            "resolveAlert": "Résoudre l'Alerte",
+            "working": "En cours...",
+            "handled": "Traité"
+        }
+    },
+    "stock_management": {
+        "errorTitle": "Erreur de chargement des niveaux",
+        "retry": "Réessayer",
+        "title": "Niveaux d'Inventaire",
+        "subtitle": "Suivez et ajustez le stock dans tous vos points de vente.",
+        "viewAlerts": "Voir Alertes",
+        "search": "Rechercher par nom de produit ou référence...",
+        "allOutlets": "Tous les Magasins",
+        "table": {
+            "productInfo": "Infos Produit",
+            "outlet": "Magasin",
+            "status": "Statut",
+            "quantity": "Quantité",
+            "actions": "Actions"
+        },
+        "empty": "Aucun registre trouvé",
+        "emptyDesc": "Essayez d'ajuster votre recherche ou filtre.",
+        "badges": {
+            "lowStock": "Stock Faible",
+            "inStock": "En Stock",
+            "min": "MIN"
+        },
+        "actions": {
+            "min": "Min",
+            "adjust": "Ajuster"
+        },
+        "adjustDialog": {
+            "title": "Ajuster Stock",
+            "currentBalance": "Solde Actuel",
+            "adjAmount": "Montant d'Ajustement",
+            "adjPlaceholder": "ex. 5 ou -5",
+            "resultingStock": "Stock Résultant",
+            "reason": "Raison d'Ajustement",
+            "reasonPlaceholder": "Réapprovisionnement, contôle, etc.",
+            "cancel": "Annuler",
+            "confirm": "Confirmer",
+            "saving": "Enregistrement..."
+        },
+        "minDialog": {
+            "title": "Configurer Point Recommande",
+            "descPart1": "Définir niveau minimum pour ",
+            "descPart2": " à ",
+            "minLevel": "Niveau Minimum",
+            "minPlaceholder": "Seuil d'alerte...",
+            "info": "Si stock < nombre, une <strong>Alerte Stock</strong> est émise automatiquement.",
+            "cancel": "Annuler",
+            "update": "Mettre à jour",
+            "saving": "Enregistrement..."
+        }
+    },
+    "product_form": {
+        "titleAdd": "Nouvel Article au Catalogue",
+        "titleUpdate": "Modifier le Produit",
+        "descAdd": "Remplissez les détails ci-dessous pour enregistrer un nouveau produit dans votre système.",
+        "descUpdate": "Remplissez les détails ci-dessous pour mettre à jour le produit existant dans votre système.",
+        "loadingData": "Chargement des données du produit...",
+        "generalIdentity": {
+            "title": "Identité Générale",
+            "desc": "Informations de base qui identifient cet article dans votre inventaire.",
+            "nameLabel": "Nom Complet du Produit",
+            "namePlaceholder": "ex. Joint de moteur BMW E46",
+            "refLabel": "SKU / Réf Entrepôt",
+            "refPlaceholder": "REF-12345",
+            "supplierLabel": "Fournisseur / Marque",
+            "supplierPlaceholder": "ex. Bosch GmbH",
+            "categoryLabel": "Catégorie de Classement",
+            "createNew": "Créer Nouveau",
+            "uncategorized": "Non classé",
+            "selectCategory": "Sélectionner un classement"
+        },
+        "pricingStrategy": {
+            "title": "Stratégie de Prix",
+            "desc": "Définissez les marges et les prix TTC.",
+            "purchasePrice": "Coût (Prix d'Achat)",
+            "sellingPrice": "Prix de Vente"
+        },
+        "stockControl": {
+            "title": "Contrôle des Stocks",
+            "desc": "Paramètres de sécurité de l'inventaire.",
+            "minStockLabel": "Alerte de Stock Minimum",
+            "minStockDesc": "Des notifications seront envoyées lorsque le stock tombera en dessous de ce seuil.",
+            "initialQtyLabel": "Quantité de Stock Initiale",
+            "initialQtyDesc": "Solde de stock d'ouverture pour ce produit.",
+            "visibilityStatus": "Statut de Visibilité",
+            "activeCatalog": "Actif dans le catalogue",
+            "active": "Actif",
+            "hidden": "Masqué"
+        },
+        "buttons": {
+            "save": "Enregistrer le Produit",
+            "update": "Mettre à jour le Registre",
+            "saving": "Enregistrement...",
+            "discard": "Annuler les modifications"
+        },
+        "validation": {
+            "nameShort": "Le nom doit comporter au moins 2 caractères",
+            "positivePrice": "Le prix doit être positif",
+            "positiveStock": "Le niveau de stock doit être positif"
+        }
     }
 }

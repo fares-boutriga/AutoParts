@@ -41,4 +41,10 @@ export class CreateProductDto {
     @IsOptional()
     @IsBoolean()
     isActive?: boolean;
+
+    @ApiProperty({ default: 0 })
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    initialQuantity?: number;
 }

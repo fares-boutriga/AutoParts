@@ -21,8 +21,10 @@ import { CategoryForm } from './CategoryForm';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 export default function CategoryList() {
+    const { t } = useTranslation();
     const [search, setSearch] = useState('');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<any>(null);
@@ -40,7 +42,7 @@ export default function CategoryList() {
     };
 
     const handleDelete = async (id: string) => {
-        if (window.confirm('Are you sure you want to delete this category?')) {
+        if (window.confirm(t('categories_page.deleteConfirm'))) {
             await deleteCategory.mutateAsync(id);
         }
     };
@@ -54,12 +56,12 @@ export default function CategoryList() {
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold">Categories</h1>
-                    <p className="text-muted-foreground">Manage your product categories</p>
+                    <h1 className="text-3xl font-bold">{t('categories_page.title')}</h1>
+                    <p className="text-muted-foreground">{t('categories_page.subtitle')}</p>
                 </div>
                 <Button onClick={handleCreate} className="gap-2">
                     <Plus className="h-4 w-4" />
-                    Add Category
+                    {t('categories_page.addBtn')}
                 </Button>
             </div>
 
@@ -69,7 +71,7 @@ export default function CategoryList() {
                         <div className="relative flex-1 max-w-sm">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
-                                placeholder="Search categories..."
+                                placeholder={t('categories_page.search')}
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="pl-9"
@@ -81,23 +83,23 @@ export default function CategoryList() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Products Count</TableHead>
-                                <TableHead>Created At</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                                <TableHead>{t('categories_page.table.name')}</TableHead>
+                                <TableHead>{t('categories_page.table.count')}</TableHead>
+                                <TableHead>{t('categories_page.table.date')}</TableHead>
+                                <TableHead className="text-right">{t('categories_page.table.actions')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {isLoading ? (
                                 <TableRow>
                                     <TableCell colSpan={4} className="h-24 text-center">
-                                        Loading...
+                                        {t('categories_page.loading')}
                                     </TableCell>
                                 </TableRow>
                             ) : filteredCategories?.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={4} className="h-24 text-center">
-                                        No categories found.
+                                        {t('categories_page.empty')}
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -122,14 +124,14 @@ export default function CategoryList() {
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => handleEdit(category)}>
                                                         <Edit className="mr-2 h-4 w-4" />
-                                                        Edit
+                                                        {t('categories_page.actions.edit')}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() => handleDelete(category.id)}
                                                         className="text-red-600"
                                                     >
                                                         <Trash2 className="mr-2 h-4 w-4" />
-                                                        Delete
+                                                        {t('categories_page.actions.delete')}
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>

@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import type { Product } from '@/lib/api/endpoints/products';
 
 interface CartItem {
@@ -56,6 +57,7 @@ export default function POS() {
     const { data: productsData, isLoading: isLoadingProducts } = useProducts({ search, limit: 50 });
     const { data: customersData } = useCustomers({ limit: 100 });
     const { mutate: createOrder } = useCreateOrder();
+    const { t } = useTranslation();
 
     const currentOutletId = user?.outlets?.[0]?.outlet.id;
 
@@ -68,7 +70,7 @@ export default function POS() {
 
     const addToCart = (product: Product) => {
         if (Number(product.totalQuantity) <= 0) {
-            toast.error('Product out of stock');
+            toast.error(t('pos_page.toast.outOfStock'));
             return;
         }
 
@@ -76,7 +78,7 @@ export default function POS() {
             const existing = prev.find((item) => item.product.id === product.id);
             if (existing) {
                 if (existing.quantity >= Number(product.totalQuantity)) {
-                    toast.error('Cannot add more than available stock');
+                    toast.error(t('pos_page.toast.exceedsStock'));
                     return prev;
                 }
                 return prev.map((item) =>
@@ -95,7 +97,7 @@ export default function POS() {
                 if (item.product.id === productId) {
                     const newQty = item.quantity + delta;
                     if (newQty > Number(item.product.totalQuantity)) {
-                        toast.error('Exceeds available stock');
+                        toast.error(t('pos_page.toast.exceedsAvailable'));
                         return item;
                     }
                     return newQty > 0 ? { ...item, quantity: newQty } : item;
@@ -111,12 +113,12 @@ export default function POS() {
 
     const handleCheckout = () => {
         if (cart.length === 0) {
-            toast.error('Cart is empty');
+            toast.error(t('pos_page.toast.cartEmpty'));
             return;
         }
 
         if (!currentOutletId) {
-            toast.error('No outlet assigned to your account');
+            toast.error(t('pos_page.toast.noOutlet'));
             return;
         }
 
@@ -136,13 +138,13 @@ export default function POS() {
             },
             {
                 onSuccess: () => {
-                    toast.success('Order completed successfully!');
+                    toast.success(t('pos_page.toast.success'));
                     setCart([]);
                     setSelectedCustomerId('');
                     setIsProcessing(false);
                 },
                 onError: () => {
-                    toast.error('Failed to process order');
+                    toast.error(t('pos_page.toast.error'));
                     setIsProcessing(false);
                 },
             }
@@ -157,12 +159,12 @@ export default function POS() {
                     <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                             <CardTitle className="text-2xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                                Parts Selection
+                                {t('pos_page.partsSelection')}
                             </CardTitle>
                             <div className="relative w-72">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                 <Input
-                                    placeholder="Search parts or reference..."
+                                    placeholder={t('pos_page.searchPlaceholder')}
                                     className="pl-9 h-10 rounded-xl border-none bg-slate-100 dark:bg-slate-800 focus-visible:ring-2 focus-visible:ring-primary/20"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
@@ -186,7 +188,7 @@ export default function POS() {
                             ) : filteredProducts.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                                     <Package className="h-16 w-16 mb-4 opacity-20" />
-                                    <p className="text-lg font-bold">No products found</p>
+                                    <p className="text-lg font-bold">{t('pos_page.noProducts')}</p>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -221,7 +223,7 @@ export default function POS() {
                                                             Number(product.totalQuantity) > 0 ? "bg-amber-500" : "bg-rose-500"
                                                     )} />
                                                     <span className="text-xs font-bold text-slate-500">
-                                                        {product.totalQuantity} in stock
+                                                        {product.totalQuantity} {t('pos_page.inStock')}
                                                     </span>
                                                 </div>
                                                 <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
@@ -244,10 +246,10 @@ export default function POS() {
                         <div className="flex items-center justify-between">
                             <CardTitle className="flex items-center gap-2 text-xl font-black">
                                 <ShoppingCart className="h-6 w-6 text-primary" />
-                                Shopping Cart
+                                {t('pos_page.shoppingCart')}
                             </CardTitle>
                             <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none px-3 py-1 rounded-full font-black uppercase text-[10px]">
-                                {cart.length} items
+                                {cart.length} {t('pos_page.itemsCount')}
                             </Badge>
                         </div>
                     </CardHeader>
@@ -256,16 +258,16 @@ export default function POS() {
                         {/* Customer Selection */}
                         <div className="p-4 bg-slate-50/50 dark:bg-slate-800/20 border-b border-slate-100 dark:border-slate-800">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Walk-in Customer</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('pos_page.walkInCustomer')}</label>
                                 <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
                                     <SelectTrigger className="h-11 rounded-xl border-none bg-white dark:bg-slate-800 shadow-sm focus:ring-2 focus:ring-primary/20">
                                         <div className="flex items-center gap-2">
                                             <User className="h-4 w-4 text-slate-400" />
-                                            <SelectValue placeholder="Select a customer (Optional)" />
+                                            <SelectValue placeholder={t('pos_page.selectCustomer')} />
                                         </div>
                                     </SelectTrigger>
                                     <SelectContent className="rounded-2xl border-none shadow-2xl bg-white dark:bg-slate-900">
-                                        <SelectItem value="walk-in" className="rounded-lg">Walk-in Customer</SelectItem>
+                                        <SelectItem value="walk-in" className="rounded-lg">{t('pos_page.walkInCustomer')}</SelectItem>
                                         {customers.map((c) => (
                                             <SelectItem key={c.id} value={c.id} className="rounded-lg">
                                                 {c.name}
@@ -282,7 +284,7 @@ export default function POS() {
                             {cart.length === 0 ? (
                                 <div className="h-64 flex flex-col items-center justify-center text-slate-300">
                                     <ShoppingCart className="h-12 w-12 mb-2 opacity-20" />
-                                    <p className="font-bold">Cart is empty</p>
+                                    <p className="font-bold">{t('pos_page.cartEmpty')}</p>
                                 </div>
                             ) : (
                                 <div className="space-y-4 py-4">
@@ -334,11 +336,11 @@ export default function POS() {
                     <CardFooter className="flex flex-col gap-4 p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-white dark:border-slate-800">
                         <div className="w-full space-y-2">
                             <div className="flex justify-between text-slate-500 font-bold text-sm">
-                                <span>Subtotal</span>
+                                <span>{t('pos_page.subtotal')}</span>
                                 <span>${cartTotal.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between items-end">
-                                <span className="text-xl font-black">Total Amount</span>
+                                <span className="text-xl font-black">{t('pos_page.totalAmount')}</span>
                                 <span className="text-4xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                                     ${cartTotal.toFixed(2)}
                                 </span>
@@ -352,7 +354,7 @@ export default function POS() {
                                 disabled={cart.length === 0}
                             >
                                 <Printer className="h-4 w-4" />
-                                Save Draft
+                                {t('pos_page.saveDraft')}
                             </Button>
                             <Button
                                 className="h-14 rounded-2xl bg-gradient-to-r from-primary to-secondary text-white font-black uppercase text-[10px] tracking-widest gap-2 shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all"
@@ -364,7 +366,7 @@ export default function POS() {
                                 ) : (
                                     <>
                                         <CreditCard className="h-4 w-4" />
-                                        Pay & Complete
+                                        {t('pos_page.payComplete')}
                                     </>
                                 )}
                             </Button>
@@ -379,7 +381,7 @@ export default function POS() {
                             <AlertCircle className="h-5 w-5" />
                         </div>
                         <p className="text-xs font-bold text-primary/80 leading-snug">
-                            Make sure to double check product references before completing the order.
+                            {t('pos_page.infoText')}
                         </p>
                     </CardContent>
                 </Card>

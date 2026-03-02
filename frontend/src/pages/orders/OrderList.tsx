@@ -21,8 +21,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, MoreHorizontal, ShoppingBag, Search } from 'lucide-react';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 export default function OrderList() {
+    const { t } = useTranslation();
     const [search, setSearch] = useState('');
     const [page] = useState(1);
     const { data, isLoading, isError } = useOrders({ page, search, limit: 10 });
@@ -50,8 +52,8 @@ export default function OrderList() {
         return (
             <div className="flex items-center justify-center h-[400px]">
                 <div className="text-center space-y-4">
-                    <p className="text-destructive font-medium">Error loading orders. Please try again.</p>
-                    <Button onClick={() => window.location.reload()} variant="outline">Retry</Button>
+                    <p className="text-destructive font-medium">{t('orders_page.error')}</p>
+                    <Button onClick={() => window.location.reload()} variant="outline">{t('orders_page.retry')}</Button>
                 </div>
             </div>
         );
@@ -61,8 +63,8 @@ export default function OrderList() {
         <div className="space-y-6 animate-in fade-in duration-500">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Order Management</h1>
-                    <p className="text-muted-foreground">Monitor and manage all customer sales and transactions.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('orders_page.title')}</h1>
+                    <p className="text-muted-foreground">{t('orders_page.subtitle')}</p>
                 </div>
             </div>
 
@@ -70,7 +72,7 @@ export default function OrderList() {
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search by ID or customer..."
+                        placeholder={t('orders_page.search')}
                         className="pl-9 h-10 bg-background"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -82,12 +84,12 @@ export default function OrderList() {
                 <Table>
                     <TableHeader className="bg-muted/50">
                         <TableRow>
-                            <TableHead className="font-bold">Order ID</TableHead>
-                            <TableHead className="font-bold">Customer</TableHead>
-                            <TableHead className="font-bold">Total Amount</TableHead>
-                            <TableHead className="font-bold">Status</TableHead>
-                            <TableHead className="font-bold">Date</TableHead>
-                            <TableHead className="text-right font-bold">Actions</TableHead>
+                            <TableHead className="font-bold">{t('orders_page.table.id')}</TableHead>
+                            <TableHead className="font-bold">{t('orders_page.table.customer')}</TableHead>
+                            <TableHead className="font-bold">{t('orders_page.table.amount')}</TableHead>
+                            <TableHead className="font-bold">{t('orders_page.table.status')}</TableHead>
+                            <TableHead className="font-bold">{t('orders_page.table.date')}</TableHead>
+                            <TableHead className="text-right font-bold">{t('orders_page.table.actions')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -96,7 +98,7 @@ export default function OrderList() {
                                 <TableCell colSpan={6} className="h-48 text-center">
                                     <div className="flex flex-col items-center justify-center gap-2">
                                         <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
-                                        <span className="text-sm font-medium text-muted-foreground">Fetching transaction history...</span>
+                                        <span className="text-sm font-medium text-muted-foreground">{t('orders_page.fetching')}</span>
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -105,7 +107,7 @@ export default function OrderList() {
                                 <TableCell colSpan={6} className="h-48 text-center text-muted-foreground">
                                     <div className="flex flex-col items-center justify-center gap-2">
                                         <ShoppingBag className="h-8 w-8 opacity-20" />
-                                        <p>No orders found. {search ? 'Try adjusting your search filters.' : 'Sales will appear here once transactions are made.'}</p>
+                                        <p>{t('orders_page.noOrders')} {search ? t('orders_page.noOrdersSearch') : t('orders_page.noOrdersEmpty')}</p>
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -116,14 +118,14 @@ export default function OrderList() {
                                         #{order.id ? order.id.substring(0, 8).toUpperCase() : 'N/A'}
                                     </TableCell>
                                     <TableCell className="font-medium">
-                                        {order.customer?.name || 'Walk-in Customer'}
+                                        {order.customer?.name || t('orders_page.walkIn')}
                                     </TableCell>
                                     <TableCell className="font-bold">
                                         ${Number(order.totalAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant={getStatusColor(order.status) as any} className="font-bold uppercase text-[10px]">
-                                            {order.status || 'UNKNOWN'}
+                                            {order.status ? t(`orders_page.status.${order.status.toLowerCase()}`) : t('orders_page.status.unknown')}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-muted-foreground text-sm">
@@ -137,15 +139,15 @@ export default function OrderList() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="w-48">
-                                                <DropdownMenuLabel>Change Status</DropdownMenuLabel>
+                                                <DropdownMenuLabel>{t('orders_page.actions.changeStatus')}</DropdownMenuLabel>
                                                 <DropdownMenuItem onClick={() => handleStatusUpdate(order.id, 'COMPLETED')}>
-                                                    Mark as Completed
+                                                    {t('orders_page.actions.completed')}
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => handleStatusUpdate(order.id, 'PENDING')}>
-                                                    Mark as Pending
+                                                    {t('orders_page.actions.pending')}
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => handleStatusUpdate(order.id, 'CANCELLED')} className="text-destructive">
-                                                    Mark as Cancelled
+                                                    {t('orders_page.actions.cancelled')}
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>

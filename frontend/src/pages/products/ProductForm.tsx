@@ -28,17 +28,19 @@ import {
     CheckCircle2,
     Info
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { type CreateProductDto } from '@/lib/api/endpoints/products';
 import { CategoryForm } from '../categories/CategoryForm';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
 const productSchema = z.object({
-    name: z.string().min(2, 'Name must be at least 2 characters'),
+    name: z.string().min(2, 'product_form.validation.nameShort'),
     reference: z.string().optional(),
-    sellingPrice: z.coerce.number().min(0, 'Selling Price must be positive'),
-    purchasePrice: z.coerce.number().min(0, 'Purchase price must be positive'),
-    minStockLevel: z.coerce.number().min(0, 'Minimum stock level must be positive'),
+    sellingPrice: z.coerce.number().min(0, 'product_form.validation.positivePrice'),
+    purchasePrice: z.coerce.number().min(0, 'product_form.validation.positivePrice'),
+    minStockLevel: z.coerce.number().min(0, 'product_form.validation.positiveStock'),
+    initialQuantity: z.coerce.number().min(0).optional(),
     categoryId: z.string().optional(),
     supplier: z.string().optional(),
     isActive: z.boolean().default(true),
@@ -47,6 +49,7 @@ const productSchema = z.object({
 type ProductFormValues = z.infer<typeof productSchema>;
 
 export default function ProductForm() {
+    const { t } = useTranslation();
     const { id } = useParams();
     const navigate = useNavigate();
     const isEditMode = !!id;
@@ -70,6 +73,7 @@ export default function ProductForm() {
             sellingPrice: 0,
             purchasePrice: 0,
             minStockLevel: 5,
+            initialQuantity: 0,
             isActive: true,
             reference: '',
             categoryId: 'none',
@@ -111,7 +115,7 @@ export default function ProductForm() {
             <div className="p-8 flex items-center justify-center min-h-[400px]">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                    <p className="text-lg font-bold text-slate-500 animate-pulse">Loading product data...</p>
+                    <p className="text-lg font-bold text-slate-500 animate-pulse">{t('product_form.loadingData')}</p>
                 </div>
             </div>
         );
@@ -131,10 +135,10 @@ export default function ProductForm() {
                 </Button>
                 <div>
                     <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                        {isEditMode ? 'Modify Product' : 'Catalog New Item'}
+                        {isEditMode ? t('product_form.titleUpdate') : t('product_form.titleAdd')}
                     </h1>
                     <p className="text-slate-500 font-medium">
-                        Fill in the details below to {isEditMode ? 'update the existing' : 'register a new'} product in your system.
+                        {isEditMode ? t('product_form.descUpdate') : t('product_form.descAdd')}
                     </p>
                 </div>
             </div>
@@ -146,44 +150,44 @@ export default function ProductForm() {
                         <Card className="border-none shadow-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl overflow-hidden">
                             <CardHeader className="bg-slate-50/50 dark:bg-slate-800/50">
                                 <CardTitle className="flex items-center gap-2">
-                                    <Package className="h-5 w-5 text-primary" /> General Identity
+                                    <Package className="h-5 w-5 text-primary" /> {t('product_form.generalIdentity.title')}
                                 </CardTitle>
-                                <CardDescription>Basic information that identifies this item in your inventory.</CardDescription>
+                                <CardDescription>{t('product_form.generalIdentity.desc')}</CardDescription>
                             </CardHeader>
                             <CardContent className="p-6 space-y-6">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-slate-500">Product Full Name</Label>
+                                    <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-slate-500">{t('product_form.generalIdentity.nameLabel')}</Label>
                                     <Input
                                         id="name"
                                         {...register('name')}
-                                        placeholder="e.g. BMW E46 Engine Gasket Set"
+                                        placeholder={t('product_form.generalIdentity.namePlaceholder')}
                                         className="h-12 rounded-xl border-slate-200 focus:ring-primary font-medium"
                                     />
-                                    {errors.name && <p className="text-xs font-bold text-rose-500 flex items-center gap-1"><Info className="h-3 w-3" /> {String(errors.name.message)}</p>}
+                                    {errors.name && <p className="text-xs font-bold text-rose-500 flex items-center gap-1"><Info className="h-3 w-3" /> {t(String(errors.name.message))}</p>}
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <Label htmlFor="reference" className="text-xs font-black uppercase tracking-widest text-slate-500">SKU / Warehouse Ref</Label>
+                                        <Label htmlFor="reference" className="text-xs font-black uppercase tracking-widest text-slate-500">{t('product_form.generalIdentity.refLabel')}</Label>
                                         <div className="relative">
                                             <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                             <Input
                                                 id="reference"
                                                 {...register('reference')}
-                                                placeholder="REF-12345"
+                                                placeholder={t('product_form.generalIdentity.refPlaceholder')}
                                                 className="pl-10 h-12 rounded-xl border-slate-200 focus:ring-primary font-mono uppercase"
                                             />
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="supplier" className="text-xs font-black uppercase tracking-widest text-slate-500">Supplier / Brand</Label>
+                                        <Label htmlFor="supplier" className="text-xs font-black uppercase tracking-widest text-slate-500">{t('product_form.generalIdentity.supplierLabel')}</Label>
                                         <div className="relative">
                                             <Truck className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                             <Input
                                                 id="supplier"
                                                 {...register('supplier')}
-                                                placeholder="e.g. Bosch GmbH"
+                                                placeholder={t('product_form.generalIdentity.supplierPlaceholder')}
                                                 className="pl-10 h-12 rounded-xl border-slate-200 focus:ring-primary font-medium"
                                             />
                                         </div>
@@ -192,7 +196,7 @@ export default function ProductForm() {
 
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center mb-1">
-                                        <Label htmlFor="categoryId" className="text-xs font-black uppercase tracking-widest text-slate-500">Classification Category</Label>
+                                        <Label htmlFor="categoryId" className="text-xs font-black uppercase tracking-widest text-slate-500">{t('product_form.generalIdentity.categoryLabel')}</Label>
                                         <Button
                                             type="button"
                                             variant="ghost"
@@ -200,7 +204,7 @@ export default function ProductForm() {
                                             className="h-7 px-2 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary hover:bg-primary/10 gap-1 rounded-lg transition-all"
                                             onClick={() => setIsCategoryFormOpen(true)}
                                         >
-                                            <Plus className="h-3 w-3" /> Create New
+                                            <Plus className="h-3 w-3" /> {t('product_form.generalIdentity.createNew')}
                                         </Button>
                                     </div>
                                     <Controller
@@ -213,10 +217,10 @@ export default function ProductForm() {
                                                 value={field.value}
                                             >
                                                 <SelectTrigger className="h-12 rounded-xl border-slate-200 focus:ring-primary font-medium">
-                                                    <SelectValue placeholder="Select classification" />
+                                                    <SelectValue placeholder={t('product_form.generalIdentity.selectCategory')} />
                                                 </SelectTrigger>
                                                 <SelectContent className="rounded-2xl border-none shadow-2xl p-1">
-                                                    <SelectItem value="none" className="rounded-xl py-3 cursor-pointer">Uncategorized</SelectItem>
+                                                    <SelectItem value="none" className="rounded-xl py-3 cursor-pointer">{t('product_form.generalIdentity.uncategorized')}</SelectItem>
                                                     {categories?.map((category) => (
                                                         <SelectItem key={category.id} value={category.id} className="rounded-xl py-3 cursor-pointer">
                                                             {category.name}
@@ -233,15 +237,15 @@ export default function ProductForm() {
                         <Card className="border-none shadow-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl overflow-hidden">
                             <CardHeader className="bg-slate-50/50 dark:bg-slate-800/50">
                                 <CardTitle className="flex items-center gap-2">
-                                    <DollarSign className="h-5 w-5 text-primary" /> Pricing Strategy
+                                    <DollarSign className="h-5 w-5 text-primary" /> {t('product_form.pricingStrategy.title')}
                                 </CardTitle>
-                                <CardDescription>Define margins and tax-inclusive prices.</CardDescription>
+                                <CardDescription>{t('product_form.pricingStrategy.desc')}</CardDescription>
                             </CardHeader>
                             <CardContent className="p-6 space-y-6">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                                     <div className="space-y-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="purchasePrice" className="text-xs font-black uppercase tracking-widest text-slate-500">Cost (Purchase Price)</Label>
+                                            <Label htmlFor="purchasePrice" className="text-xs font-black uppercase tracking-widest text-slate-500">{t('product_form.pricingStrategy.purchasePrice')}</Label>
                                             <div className="relative group">
                                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 group-focus-within:text-primary transition-colors">$</span>
                                                 <Input
@@ -252,13 +256,13 @@ export default function ProductForm() {
                                                     className="pl-8 h-12 rounded-xl border-slate-200 focus:ring-primary font-black text-lg"
                                                 />
                                             </div>
-                                            {errors.purchasePrice && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">{String(errors.purchasePrice.message)}</p>}
+                                            {errors.purchasePrice && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">{t(String(errors.purchasePrice.message))}</p>}
                                         </div>
                                     </div>
 
                                     <div className="space-y-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="sellingPrice" className="text-xs font-black uppercase tracking-widest text-slate-500">Selling Price</Label>
+                                            <Label htmlFor="sellingPrice" className="text-xs font-black uppercase tracking-widest text-slate-500">{t('product_form.pricingStrategy.sellingPrice')}</Label>
                                             <div className="relative group">
                                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 group-focus-within:text-primary transition-colors">$</span>
                                                 <Input
@@ -269,7 +273,7 @@ export default function ProductForm() {
                                                     className="pl-8 h-12 rounded-xl border-primary bg-primary/5 focus:ring-primary font-black text-2xl text-primary"
                                                 />
                                             </div>
-                                            {errors.sellingPrice && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">{String(errors.sellingPrice.message)}</p>}
+                                            {errors.sellingPrice && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">{t(String(errors.sellingPrice.message))}</p>}
                                         </div>
                                     </div>
                                 </div>
@@ -282,13 +286,13 @@ export default function ProductForm() {
                         <Card className="border-none shadow-2xl bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl overflow-hidden">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-white">
-                                    <Boxes className="h-5 w-5 text-secondary" /> Stock Control
+                                    <Boxes className="h-5 w-5 text-secondary" /> {t('product_form.stockControl.title')}
                                 </CardTitle>
-                                <CardDescription className="text-slate-400">Inventory safety parameters.</CardDescription>
+                                <CardDescription className="text-slate-400">{t('product_form.stockControl.desc')}</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <div className="space-y-2">
-                                    <Label htmlFor="minStockLevel" className="text-xs font-black uppercase tracking-widest text-slate-300">Minimum Stock Alert</Label>
+                                    <Label htmlFor="minStockLevel" className="text-xs font-black uppercase tracking-widest text-slate-300">{t('product_form.stockControl.minStockLabel')}</Label>
                                     <Input
                                         id="minStockLevel"
                                         type="number"
@@ -296,17 +300,32 @@ export default function ProductForm() {
                                         className="h-12 rounded-xl bg-white/10 border-white/10 text-white focus:ring-secondary font-black text-xl"
                                     />
                                     <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
-                                        Notifications will be sent when inventory falls below this threshold.
+                                        {t('product_form.stockControl.minStockDesc')}
                                     </p>
-                                    {errors.minStockLevel && <p className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">{String(errors.minStockLevel.message)}</p>}
+                                    {errors.minStockLevel && <p className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">{t(String(errors.minStockLevel.message))}</p>}
                                 </div>
+
+                                {!isEditMode && (
+                                    <div className="space-y-2 pt-2">
+                                        <Label htmlFor="initialQuantity" className="text-xs font-black uppercase tracking-widest text-slate-300">{t('product_form.stockControl.initialQtyLabel')}</Label>
+                                        <Input
+                                            id="initialQuantity"
+                                            type="number"
+                                            {...register('initialQuantity')}
+                                            className="h-12 rounded-xl bg-emerald-500/10 border-emerald-500/20 text-emerald-400 focus:ring-emerald-500 font-black text-2xl"
+                                        />
+                                        <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+                                            {t('product_form.stockControl.initialQtyDesc')}
+                                        </p>
+                                    </div>
+                                )}
 
                                 <Separator className="bg-white/5" />
 
                                 <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
                                     <div className="space-y-0.5">
-                                        <p className="text-sm font-bold">Visibility Status</p>
-                                        <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Active in catalog</p>
+                                        <p className="text-sm font-bold">{t('product_form.stockControl.visibilityStatus')}</p>
+                                        <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black">{t('product_form.stockControl.activeCatalog')}</p>
                                     </div>
                                     <Controller
                                         name="isActive"
@@ -322,7 +341,7 @@ export default function ProductForm() {
                                                 )}
                                                 onClick={() => field.onChange(!field.value)}
                                             >
-                                                {field.value ? 'Active' : 'Hidden'}
+                                                {field.value ? t('product_form.stockControl.active') : t('product_form.stockControl.hidden')}
                                             </Button>
                                         )}
                                     />
@@ -342,7 +361,7 @@ export default function ProductForm() {
                                 ) : (
                                     <div className="flex items-center gap-2">
                                         <CheckCircle2 className="h-6 w-6" />
-                                        {isEditMode ? 'Update Record' : 'Save Product'}
+                                        {isEditMode ? t('product_form.buttons.update') : t('product_form.buttons.save')}
                                     </div>
                                 )}
                             </Button>
@@ -352,7 +371,7 @@ export default function ProductForm() {
                                 onClick={() => navigate('/products')}
                                 className="w-full h-12 rounded-2xl text-slate-500 font-black text-xs uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-800"
                             >
-                                Discard Changes
+                                {t('product_form.buttons.discard')}
                             </Button>
                         </div>
                     </div>

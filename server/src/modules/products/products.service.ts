@@ -16,10 +16,10 @@ export class ProductsService {
         const outlets = await this.prisma.outlet.findMany({ select: { id: true } });
         if (outlets.length > 0) {
             await this.prisma.stock.createMany({
-                data: outlets.map(outlet => ({
+                data: outlets.map((outlet, index) => ({
                     productId: product.id,
                     outletId: outlet.id,
-                    quantity: 0,
+                    quantity: index === 0 ? (createProductDto.initialQuantity || 0) : 0,
                     minStockLevel: product.minStockLevel || 5,
                 })),
             });

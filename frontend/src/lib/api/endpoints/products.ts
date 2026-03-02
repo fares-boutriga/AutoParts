@@ -29,6 +29,7 @@ export interface CreateProductDto {
     sellingPrice: number;
     minStockLevel?: number;
     isActive?: boolean;
+    initialQuantity?: number;
 }
 
 export interface ProductQuery {

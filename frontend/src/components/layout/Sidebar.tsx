@@ -15,37 +15,38 @@ import {
     ChevronRight
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth/store';
+import { useTranslation } from 'react-i18next';
 
 const sidebarGroups = [
     {
-        title: "Commerce",
+        titleKey: "sidebar.commerce",
         items: [
-            { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-            { name: 'POS Terminal', href: '/pos', icon: ShoppingCart },
-            { name: 'Orders & Sales', href: '/orders', icon: TicketPercent },
+            { nameKey: 'sidebar.dashboard', href: '/', icon: LayoutDashboard },
+            { nameKey: 'sidebar.pos', href: '/pos', icon: ShoppingCart },
+            { nameKey: 'sidebar.orders', href: '/orders', icon: TicketPercent },
         ]
     },
     {
-        title: "Inventory",
+        titleKey: "sidebar.inventory",
         items: [
-            { name: 'Product Catalog', href: '/products', icon: Package },
-            { name: 'Categories', href: '/categories', icon: Store },
-            { name: 'Stock Levels', href: '/stock', icon: Box },
+            { nameKey: 'sidebar.catalog', href: '/products', icon: Package },
+            { nameKey: 'sidebar.categories', href: '/categories', icon: Store },
+            { nameKey: 'sidebar.stock', href: '/stock', icon: Box },
         ]
     },
     {
-        title: "People & Places",
+        titleKey: "sidebar.people",
         items: [
-            { name: 'CRM Customers', href: '/customers', icon: Users },
-            { name: 'Store Outlets', href: '/outlets', icon: Store },
+            { nameKey: 'sidebar.crm', href: '/customers', icon: Users },
+            { nameKey: 'sidebar.outlets', href: '/outlets', icon: Store },
         ]
     },
     {
-        title: "System",
+        titleKey: "sidebar.system",
         items: [
-            { name: 'Staff Users', href: '/users', icon: UserCog },
-            { name: 'Permissions', href: '/roles', icon: Shield },
-            { name: 'Alerts center', href: '/notifications', icon: Bell },
+            { nameKey: 'sidebar.staff', href: '/users', icon: UserCog },
+            { nameKey: 'sidebar.permissions', href: '/roles', icon: Shield },
+            { nameKey: 'sidebar.alerts', href: '/notifications', icon: Bell },
         ]
     }
 ];
@@ -53,6 +54,7 @@ const sidebarGroups = [
 export function Sidebar() {
     const location = useLocation();
     const logout = useAuthStore((state) => state.logout);
+    const { t } = useTranslation();
 
     return (
         <div className="flex flex-col h-full bg-slate-900 border-r border-white/5 shadow-2xl z-20 overflow-hidden">
@@ -78,7 +80,7 @@ export function Sidebar() {
                 {sidebarGroups.map((group, groupIdx) => (
                     <div key={groupIdx} className="space-y-3 animate-in fade-in slide-in-from-left-4 duration-500" style={{ animationDelay: `${groupIdx * 0.1}s` }}>
                         <h3 className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500">
-                            {group.title}
+                            {t(group.titleKey as any)}
                         </h3>
                         <nav className="space-y-1">
                             {group.items.map((item) => {
@@ -102,7 +104,7 @@ export function Sidebar() {
                                             )}>
                                                 <Icon className="h-4 w-4" />
                                             </div>
-                                            <span className="font-bold text-sm tracking-tight">{item.name}</span>
+                                            <span className="font-bold text-sm tracking-tight">{t(item.nameKey as any)}</span>
                                         </div>
                                         {isActive && <ChevronRight className="h-4 w-4 text-white/50" />}
                                     </Link>
@@ -122,7 +124,7 @@ export function Sidebar() {
                     <div className="p-2 rounded-xl bg-rose-500/10 group-hover:bg-rose-500/20 transition-colors">
                         <LogOut className="h-4 w-4" />
                     </div>
-                    <span className="uppercase tracking-widest text-[11px]">End Session</span>
+                    <span className="uppercase tracking-widest text-[11px]">{t('sidebar.endSession')}</span>
                 </button>
             </div>
         </div>

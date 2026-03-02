@@ -24,6 +24,7 @@ import {
 import { format } from 'date-fns';
 import api from '@/lib/api/client';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface StockAlert {
     id: string;
@@ -38,6 +39,7 @@ interface StockAlert {
 }
 
 export default function StockAlerts() {
+    const { t } = useTranslation();
     const queryClient = useQueryClient();
 
     const { data, isLoading, isError, refetch } = useQuery({
@@ -54,10 +56,10 @@ export default function StockAlerts() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['stock-alerts'] });
-            toast.success('Alert acknowledged');
+            toast.success(t('stock_alerts.toast.ackSuccess'));
         },
         onError: () => {
-            toast.error('Failed to acknowledge alert');
+            toast.error(t('stock_alerts.toast.ackError'));
         },
     });
 
@@ -67,8 +69,8 @@ export default function StockAlerts() {
                 <Card className="max-w-md border-destructive/50 shadow-lg bg-white/50 backdrop-blur-xl">
                     <CardContent className="p-6 text-center space-y-4">
                         <AlertTriangle className="h-12 w-12 text-destructive mx-auto animate-bounce" />
-                        <h2 className="text-xl font-bold">Error Loading Alerts</h2>
-                        <Button variant="outline" onClick={() => refetch()}>Retry</Button>
+                        <h2 className="text-xl font-bold">{t('stock_alerts.errorTitle')}</h2>
+                        <Button variant="outline" onClick={() => refetch()}>{t('stock_alerts.retry')}</Button>
                     </CardContent>
                 </Card>
             </div>
@@ -84,10 +86,10 @@ export default function StockAlerts() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div className="space-y-1">
                     <h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-rose-500 via-primary to-orange-500 bg-clip-text text-transparent animate-gradient-x">
-                        Stock Monitoring
+                        {t('stock_alerts.title')}
                     </h1>
                     <p className="text-slate-500 dark:text-slate-400 font-medium">
-                        Real-time alerts for low stock levels and inventory disruptions.
+                        {t('stock_alerts.subtitle')}
                     </p>
                 </div>
                 <div className="flex gap-3">
@@ -97,7 +99,7 @@ export default function StockAlerts() {
                         className="rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold"
                     >
                         <RefreshCcw className={cn("mr-2 h-4 w-4", isLoading && "animate-spin")} />
-                        Refresh
+                        {t('stock_alerts.refresh')}
                     </Button>
                 </div>
             </div>
@@ -107,9 +109,9 @@ export default function StockAlerts() {
                 <Card className="border-none shadow-xl bg-rose-500/5 border-l-4 border-l-rose-500">
                     <CardContent className="p-6 flex items-center justify-between">
                         <div className="space-y-1">
-                            <p className="text-sm font-black uppercase tracking-widest text-rose-500">Critical Alerts</p>
+                            <p className="text-sm font-black uppercase tracking-widest text-rose-500">{t('stock_alerts.criticalTitle')}</p>
                             <p className="text-4xl font-black text-slate-900 dark:text-white">{pendingAlerts.length}</p>
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Needs immediate attention</p>
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">{t('stock_alerts.criticalDesc')}</p>
                         </div>
                         <div className="h-16 w-16 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center">
                             <Bell className="h-8 w-8 animate-tada" />
@@ -119,9 +121,9 @@ export default function StockAlerts() {
                 <Card className="border-none shadow-xl bg-emerald-500/5 border-l-4 border-l-emerald-500">
                     <CardContent className="p-6 flex items-center justify-between">
                         <div className="space-y-1">
-                            <p className="text-sm font-black uppercase tracking-widest text-emerald-500">Resolved Today</p>
+                            <p className="text-sm font-black uppercase tracking-widest text-emerald-500">{t('stock_alerts.resolvedTitle')}</p>
                             <p className="text-4xl font-black text-slate-900 dark:text-white">{acknowledgedAlerts.length}</p>
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Marked as resolved</p>
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">{t('stock_alerts.resolvedDesc')}</p>
                         </div>
                         <div className="h-16 w-16 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
                             <CheckCheck className="h-8 w-8" />
@@ -135,22 +137,22 @@ export default function StockAlerts() {
                 <CardHeader className="border-b border-slate-100 dark:border-slate-800 p-6">
                     <CardTitle className="text-xl font-black flex items-center gap-2">
                         <AlertTriangle className="h-5 w-5 text-rose-500" />
-                        Inventory Warnings
+                        {t('stock_alerts.tableTitle')}
                     </CardTitle>
                     <CardDescription className="font-medium">
-                        Showing all active and recently resolved stock notifications.
+                        {t('stock_alerts.tableDesc')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-slate-50/50 dark:bg-slate-800/50 border-none">
-                                <TableHead className="py-4 pl-8 font-bold">Severity</TableHead>
-                                <TableHead className="py-4 font-bold">Product Information</TableHead>
-                                <TableHead className="py-4 font-bold">Stock Status</TableHead>
-                                <TableHead className="py-4 font-bold">Alert Message</TableHead>
-                                <TableHead className="py-4 font-bold">Time</TableHead>
-                                <TableHead className="py-4 pr-8 text-right font-bold">Actions</TableHead>
+                                <TableHead className="py-4 pl-8 font-bold">{t('stock_alerts.table.severity')}</TableHead>
+                                <TableHead className="py-4 font-bold">{t('stock_alerts.table.productInfo')}</TableHead>
+                                <TableHead className="py-4 font-bold">{t('stock_alerts.table.stockStatus')}</TableHead>
+                                <TableHead className="py-4 font-bold">{t('stock_alerts.table.message')}</TableHead>
+                                <TableHead className="py-4 font-bold">{t('stock_alerts.table.time')}</TableHead>
+                                <TableHead className="py-4 pr-8 text-right font-bold">{t('stock_alerts.table.actions')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -159,7 +161,7 @@ export default function StockAlerts() {
                                     <TableCell colSpan={6} className="h-64 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-                                            <span className="text-slate-500 font-bold animate-pulse">Scanning inventory logs...</span>
+                                            <span className="text-slate-500 font-bold animate-pulse">{t('stock_alerts.scanning')}</span>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -171,9 +173,9 @@ export default function StockAlerts() {
                                                 <CheckCircle2 className="h-12 w-12 text-emerald-500" />
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-2xl font-black">All stocked up!</p>
+                                                <p className="text-2xl font-black">{t('stock_alerts.allStocked')}</p>
                                                 <p className="text-slate-500 font-medium italic">
-                                                    No low-stock alerts detected at the moment.
+                                                    {t('stock_alerts.noAlerts')}
                                                 </p>
                                             </div>
                                         </div>
@@ -191,11 +193,11 @@ export default function StockAlerts() {
                                         <TableCell className="pl-8">
                                             {alert.status === 'PENDING' ? (
                                                 <Badge className="bg-rose-500 text-white border-none rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-wider animate-pulse">
-                                                    Critical
+                                                    {t('stock_alerts.badges.critical')}
                                                 </Badge>
                                             ) : (
                                                 <Badge className="bg-slate-100 text-slate-400 dark:bg-slate-800 border-none rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-wider">
-                                                    Resolved
+                                                    {t('stock_alerts.badges.resolved')}
                                                 </Badge>
                                             )}
                                         </TableCell>
@@ -240,12 +242,12 @@ export default function StockAlerts() {
                                                     disabled={acknowledgeMutation.isPending}
                                                     className="rounded-xl bg-slate-900 hover:bg-black text-white px-4 font-bold text-xs"
                                                 >
-                                                    {acknowledgeMutation.isPending ? 'Working...' : 'Resolve Alert'}
+                                                    {acknowledgeMutation.isPending ? t('stock_alerts.actions.working') : t('stock_alerts.actions.resolveAlert')}
                                                 </Button>
                                             ) : (
                                                 <div className="text-emerald-500 flex items-center justify-end gap-1 font-bold text-xs uppercase tracking-widest">
                                                     <CheckCircle2 className="h-4 w-4" />
-                                                    Handled
+                                                    {t('stock_alerts.actions.handled')}
                                                 </div>
                                             )}
                                         </TableCell>

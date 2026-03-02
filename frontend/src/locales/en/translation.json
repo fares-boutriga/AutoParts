@@ -8,5 +8,279 @@
     "accountAccess": "Account Access",
     "profileSettings": "Profile Settings",
     "terminateSession": "Terminate Session"
+  },
+  "sidebar": {
+    "commerce": "Commerce",
+    "dashboard": "Dashboard",
+    "pos": "POS Terminal",
+    "orders": "Orders & Sales",
+    "inventory": "Inventory",
+    "catalog": "Product Catalog",
+    "categories": "Categories",
+    "stock": "Stock Levels",
+    "people": "People & Places",
+    "crm": "CRM Customers",
+    "outlets": "Store Outlets",
+    "system": "System",
+    "staff": "Staff Users",
+    "permissions": "Permissions",
+    "alerts": "Alerts center",
+    "endSession": "End Session"
+  },
+  "products": {
+    "title": "Product Inventory",
+    "subtitle": "Manage your wholesale parts and monitor stock levels in real-time.",
+    "addBtn": "Add New Product",
+    "stats": {
+      "total": "Total Products",
+      "lowStock": "Low Stock Items",
+      "active": "Active Status"
+    },
+    "search": "Filter products by name, reference or supplier...",
+    "table": {
+      "ref": "Reference",
+      "identity": "Product Identity",
+      "category": "Category",
+      "pricing": "Pricing",
+      "stock": "Stock Status",
+      "visibility": "Visibility",
+      "options": "Options"
+    }
+  },
+  "dashboard_page": {
+    "totalRevenue": "Total Revenue",
+    "fromLastMonth": "from last month",
+    "activeOrders": "Active Orders",
+    "productsInStock": "Products in Stock",
+    "lowStockAlerts": "Low Stock Alerts",
+    "requiresAttention": "Requires attention",
+    "recentSales": {
+      "title": "Recent Sales",
+      "empty": "Recent transactions will appear here",
+      "emptySub": "Start making sales to see activity"
+    }
+  },
+  "pos_page": {
+    "toast": {
+      "outOfStock": "Product out of stock",
+      "exceedsStock": "Cannot add more than available stock",
+      "exceedsAvailable": "Exceeds available stock",
+      "cartEmpty": "Cart is empty",
+      "noOutlet": "No outlet assigned to your account",
+      "success": "Order completed successfully!",
+      "error": "Failed to process order"
+    },
+    "partsSelection": "Parts Selection",
+    "searchPlaceholder": "Search parts or reference...",
+    "noProducts": "No products found",
+    "inStock": "in stock",
+    "shoppingCart": "Shopping Cart",
+    "itemsCount": "items",
+    "walkInCustomer": "Walk-in Customer",
+    "selectCustomer": "Select a customer (Optional)",
+    "cartEmpty": "Cart is empty",
+    "subtotal": "Subtotal",
+    "totalAmount": "Total Amount",
+    "saveDraft": "Save Draft",
+    "payComplete": "Pay & Complete",
+    "infoText": "Make sure to double check product references before completing the order."
+  },
+  "orders_page": {
+    "title": "Order Management",
+    "subtitle": "Monitor and manage all customer sales and transactions.",
+    "search": "Search by ID or customer...",
+    "error": "Error loading orders. Please try again.",
+    "retry": "Retry",
+    "fetching": "Fetching transaction history...",
+    "noOrders": "No orders found.",
+    "noOrdersSearch": "Try adjusting your search filters.",
+    "noOrdersEmpty": "Sales will appear here once transactions are made.",
+    "walkIn": "Walk-in Customer",
+    "table": {
+      "id": "Order ID",
+      "customer": "Customer",
+      "amount": "Total Amount",
+      "status": "Status",
+      "date": "Date",
+      "actions": "Actions"
+    },
+    "actions": {
+      "changeStatus": "Change Status",
+      "completed": "Mark as Completed",
+      "pending": "Mark as Pending",
+      "cancelled": "Mark as Cancelled"
+    },
+    "status": {
+      "completed": "COMPLETED",
+      "pending": "PENDING",
+      "cancelled": "CANCELLED",
+      "unknown": "UNKNOWN"
+    }
+  },
+  "categories_page": {
+    "title": "Categories",
+    "subtitle": "Manage your product categories",
+    "addBtn": "Add Category",
+    "search": "Search categories...",
+    "loading": "Loading...",
+    "empty": "No categories found.",
+    "deleteConfirm": "Are you sure you want to delete this category?",
+    "table": {
+      "name": "Name",
+      "count": "Products Count",
+      "date": "Created At",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "form": {
+      "editTitle": "Edit Category",
+      "addTitle": "Add Category",
+      "nameLabel": "Category Name",
+      "namePlaceholder": "e.g. Engine Parts",
+      "nameRequired": "Name is required",
+      "cancel": "Cancel",
+      "update": "Update",
+      "create": "Create"
+    }
+  },
+  "stock_alerts": {
+    "toast": {
+      "ackSuccess": "Alert acknowledged",
+      "ackError": "Failed to acknowledge alert"
+    },
+    "errorTitle": "Error Loading Alerts",
+    "retry": "Retry",
+    "title": "Stock Monitoring",
+    "subtitle": "Real-time alerts for low stock levels and inventory disruptions.",
+    "refresh": "Refresh",
+    "criticalTitle": "Critical Alerts",
+    "criticalDesc": "Needs immediate attention",
+    "resolvedTitle": "Resolved Today",
+    "resolvedDesc": "Marked as resolved",
+    "tableTitle": "Inventory Warnings",
+    "tableDesc": "Showing all active and recently resolved stock notifications.",
+    "table": {
+      "severity": "Severity",
+      "productInfo": "Product Information",
+      "stockStatus": "Stock Status",
+      "message": "Alert Message",
+      "time": "Time",
+      "actions": "Actions"
+    },
+    "scanning": "Scanning inventory logs...",
+    "allStocked": "All stocked up!",
+    "noAlerts": "No low-stock alerts detected at the moment.",
+    "badges": {
+      "critical": "Critical",
+      "resolved": "Resolved"
+    },
+    "actions": {
+      "resolveAlert": "Resolve Alert",
+      "working": "Working...",
+      "handled": "Handled"
+    }
+  },
+  "stock_management": {
+    "errorTitle": "Error loading stock levels",
+    "retry": "Retry",
+    "title": "Inventory Levels",
+    "subtitle": "Track and adjust stock levels across all your distribution outlets.",
+    "viewAlerts": "View Alerts",
+    "search": "Search by product name or reference...",
+    "allOutlets": "All Outlets",
+    "table": {
+      "productInfo": "Product Info",
+      "outlet": "Outlet",
+      "status": "Status",
+      "quantity": "Quantity",
+      "actions": "Actions"
+    },
+    "empty": "No stock records found",
+    "emptyDesc": "Try adjusting your search or filters.",
+    "badges": {
+      "lowStock": "Low Stock",
+      "inStock": "In Stock",
+      "min": "MIN"
+    },
+    "actions": {
+      "min": "Min",
+      "adjust": "Adjust"
+    },
+    "adjustDialog": {
+      "title": "Adjust Stock",
+      "currentBalance": "Current Balance",
+      "adjAmount": "Adjustment Amount",
+      "adjPlaceholder": "e.g. 5 or -5",
+      "resultingStock": "Resulting Stock",
+      "reason": "Reason for Adjustment",
+      "reasonPlaceholder": "Restock, inventory check, etc.",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "saving": "Saving..."
+    },
+    "minDialog": {
+      "title": "Configure Reorder Point",
+      "descPart1": "Set a minimum stock level for ",
+      "descPart2": " at ",
+      "minLevel": "Minimum Stock Level",
+      "minPlaceholder": "Alert threshold...",
+      "info": "When stock falls below this number, a <strong>Stock Alert</strong> will be generated automatically.",
+      "cancel": "Cancel",
+      "update": "Update",
+      "saving": "Saving..."
+    }
+  },
+  "product_form": {
+    "titleAdd": "Catalog New Item",
+    "titleUpdate": "Modify Product",
+    "descAdd": "Fill in the details below to register a new product in your system.",
+    "descUpdate": "Fill in the details below to update the existing product in your system.",
+    "loadingData": "Loading product data...",
+    "generalIdentity": {
+      "title": "General Identity",
+      "desc": "Basic information that identifies this item in your inventory.",
+      "nameLabel": "Product Full Name",
+      "namePlaceholder": "e.g. BMW E46 Engine Gasket Set",
+      "refLabel": "SKU / Warehouse Ref",
+      "refPlaceholder": "REF-12345",
+      "supplierLabel": "Supplier / Brand",
+      "supplierPlaceholder": "e.g. Bosch GmbH",
+      "categoryLabel": "Classification Category",
+      "createNew": "Create New",
+      "uncategorized": "Uncategorized",
+      "selectCategory": "Select classification"
+    },
+    "pricingStrategy": {
+      "title": "Pricing Strategy",
+      "desc": "Define margins and tax-inclusive prices.",
+      "purchasePrice": "Cost (Purchase Price)",
+      "sellingPrice": "Selling Price"
+    },
+    "stockControl": {
+      "title": "Stock Control",
+      "desc": "Inventory safety parameters.",
+      "minStockLabel": "Minimum Stock Alert",
+      "minStockDesc": "Notifications will be sent when inventory falls below this threshold.",
+      "initialQtyLabel": "Initial Stock Quantity",
+      "initialQtyDesc": "Opening stock balance for this product.",
+      "visibilityStatus": "Visibility Status",
+      "activeCatalog": "Active in catalog",
+      "active": "Active",
+      "hidden": "Hidden"
+    },
+    "buttons": {
+      "save": "Save Product",
+      "update": "Update Record",
+      "saving": "Saving...",
+      "discard": "Discard Changes"
+    },
+    "validation": {
+      "nameShort": "Name must be at least 2 characters",
+      "positivePrice": "Price must be positive",
+      "positiveStock": "Stock level must be positive"
+    }
   }
 }

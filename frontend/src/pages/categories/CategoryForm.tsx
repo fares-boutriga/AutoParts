@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCreateCategory, useUpdateCategory } from '@/hooks/useCategories';
+import { useTranslation } from 'react-i18next';
 
 const categorySchema = z.object({
     name: z.string().min(1, 'Name is required'),
@@ -27,6 +28,7 @@ interface CategoryFormProps {
 }
 
 export function CategoryForm({ isOpen, onClose, category }: CategoryFormProps) {
+    const { t } = useTranslation();
     const createCategory = useCreateCategory();
     const updateCategory = useUpdateCategory();
 
@@ -63,26 +65,26 @@ export function CategoryForm({ isOpen, onClose, category }: CategoryFormProps) {
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>{category ? 'Edit Category' : 'Add Category'}</DialogTitle>
+                    <DialogTitle>{category ? t('categories_page.form.editTitle') : t('categories_page.form.addTitle')}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="name">Category Name</Label>
+                        <Label htmlFor="name">{t('categories_page.form.nameLabel')}</Label>
                         <Input
                             id="name"
                             {...register('name')}
-                            placeholder="e.g. Engine Parts"
+                            placeholder={t('categories_page.form.namePlaceholder')}
                         />
                         {errors.name && (
-                            <p className="text-sm text-red-500">{errors.name.message}</p>
+                            <p className="text-sm text-red-500">{t('categories_page.form.nameRequired')}</p>
                         )}
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={onClose}>
-                            Cancel
+                            {t('categories_page.form.cancel')}
                         </Button>
                         <Button type="submit" disabled={isSubmitting}>
-                            {category ? 'Update' : 'Create'}
+                            {category ? t('categories_page.form.update') : t('categories_page.form.create')}
                         </Button>
                     </DialogFooter>
                 </form>
