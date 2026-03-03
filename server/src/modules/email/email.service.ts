@@ -4,56 +4,113 @@ import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
-    private transporter;
+  private transporter;
 
-    constructor(private configService: ConfigService) {
-        this.transporter = nodemailer.createTransport({
-            host: this.configService.get<string>('SMTP_HOST'),
-            port: this.configService.get<number>('SMTP_PORT'),
-            secure: this.configService.get<boolean>('SMTP_SECURE') === true,
-            auth: {
-                user: this.configService.get<string>('SMTP_USER'),
-                pass: this.configService.get<string>('SMTP_PASSWORD'),
-            },
-        });
+  constructor(private configService: ConfigService) {
+    this.transporter = nodemailer.createTransport({
+      host: this.configService.get<string>('SMTP_HOST'),
+      port: this.configService.get<number>('SMTP_PORT'),
+      secure: this.configService.get<boolean>('SMTP_SECURE') === true,
+      auth: {
+        user: this.configService.get<string>('SMTP_USER'),
+        pass: this.configService.get<string>('SMTP_PASSWORD'),
+      },
+    });
+  }
+
+  async sendStockAlert(
+    recipientEmail: string,
+    productName: string,
+    currentQuantity: number,
+    minStockLevel: number,
+    outletName: string,
+  ) {
+    try {
+      const mailOptions = {
+        from: this.configService.get<string>('EMAIL_FROM'),
+        to: recipientEmail,
+        subject: `🚨 Stock Alert: ${productName} - Low Inventory`,
+        html: this.getStockAlertTemplate(
+          productName,
+          currentQuantity,
+          minStockLevel,
+          outletName,
+        ),
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log('✅ Email sent:', info.messageId);
+      return { success: true, messageId: info.messageId };
+    } catch (error) {
+      console.error('❌ Failed to send email:', error.message);
+      return { success: false, error: error.message };
     }
+  }
 
-    async sendStockAlert(
-        recipientEmail: string,
-        productName: string,
-        currentQuantity: number,
-        minStockLevel: number,
-        outletName: string,
-    ) {
-        try {
-            const mailOptions = {
-                from: this.configService.get<string>('EMAIL_FROM'),
-                to: recipientEmail,
-                subject: `🚨 Stock Alert: ${productName} - Low Inventory`,
-                html: this.getStockAlertTemplate(
-                    productName,
-                    currentQuantity,
-                    minStockLevel,
-                    outletName,
-                ),
-            };
-
-            const info = await this.transporter.sendMail(mailOptions);
-            console.log('✅ Email sent:', info.messageId);
-            return { success: true, messageId: info.messageId };
-        } catch (error) {
-            console.error('❌ Failed to send email:', error.message);
-            return { success: false, error: error.message };
-        }
+  async sendEmailChangeNotification(
+    adminEmail: string,
+    userName: string,
+    oldEmail: string,
+  ) {
+    try {
+      const now = new Date().toLocaleString('fr-TN', { timeZone: 'Africa/Tunis' });
+      const mailOptions = {
+        from: this.configService.get<string>('EMAIL_FROM'),
+        to: adminEmail,
+        subject: `⚠️ Modification d'email - ${userName}`,
+        html: `
+                  <!DOCTYPE html>
+                  <html>
+                  <head>
+                    <style>
+                      body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                      .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                      .header { background: #f59e0b; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+                      .content { background: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+                      .info-box { background: #fff; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; }
+                      .footer { text-align: center; margin-top: 20px; color: #777; font-size: 12px; }
+                    </style>
+                  </head>
+                  <body>
+                    <div class="container">
+                      <div class="header"><h1>⚠️ Modification d'adresse email</h1></div>
+                      <div class="content">
+                        <div class="info-box">
+                          <p><strong>Notification système :</strong> Un utilisateur a modifié son adresse email.</p>
+                        </div>
+                        <p><strong>Utilisateur :</strong> ${userName}</p>
+                        <p><strong>Ancienne adresse email :</strong> ${oldEmail}</p>
+                        <p><strong>Date de modification :</strong> ${now}</p>
+                        <p style="margin-top:20px; color:#777; font-size:13px;">
+                          Pour des raisons de confidentialité, la nouvelle adresse email n'est pas affichée dans cette notification.
+                          Veuillez vous connecter au panneau d'administration pour consulter les informations complètes.
+                        </p>
+                      </div>
+                      <div class="footer">
+                        <p>Système Auto Parts POS &mdash; Notification automatique</p>
+                      </div>
+                    </div>
+                  </body>
+                  </html>
+                `,
+      };
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log('✅ Email change notification sent:', info.messageId);
+      return { success: true, messageId: info.messageId };
+    } catch (error) {
+      console.error('❌ Failed to send email change notification:', error.message);
+      return { success: false, error: error.message };
     }
+  }
 
-    private getStockAlertTemplate(
-        productName: string,
-        currentQuantity: number,
-        minStockLevel: number,
-        outletName: string,
-    ): string {
-        return `
+
+  private getStockAlertTemplate(
+    productName: string,
+    currentQuantity: number,
+    minStockLevel: number,
+    outletName: string,
+  ): string {
+    return `
       <!DOCTYPE html>
       <html>
       <head>
@@ -113,5 +170,5 @@ export class EmailService {
       </body>
       </html>
     `;
-    }
+  }
 }

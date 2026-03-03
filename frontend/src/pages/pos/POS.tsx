@@ -2,20 +2,12 @@ import { useState, useMemo } from 'react';
 import { useAuthStore } from '@/lib/auth/store';
 import { useProducts } from '@/hooks/useProducts';
 import { useCustomers } from '@/hooks/useCustomers';
-import { useOrders, useCreateOrder } from '@/hooks/useOrders';
+import { useCreateOrder } from '@/hooks/useOrders';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import {
     Select,
     SelectContent,
@@ -36,11 +28,13 @@ import {
     Package,
     AlertCircle,
     X,
+    Receipt,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import type { Product } from '@/lib/api/endpoints/products';
+import InvoiceModal from '@/components/InvoiceModal';
 
 interface CartItem {
     product: Product;
@@ -52,6 +46,8 @@ export default function POS() {
     const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [lastOrderId, setLastOrderId] = useState<string | null>(null);
+    const [showInvoice, setShowInvoice] = useState(false);
 
     const { user } = useAuthStore();
     const { data: productsData, isLoading: isLoadingProducts } = useProducts({ search, limit: 50 });
@@ -137,11 +133,15 @@ export default function POS() {
                 outletId: currentOutletId,
             },
             {
-                onSuccess: () => {
+                onSuccess: (order: any) => {
                     toast.success(t('pos_page.toast.success'));
                     setCart([]);
                     setSelectedCustomerId('');
                     setIsProcessing(false);
+                    if (order?.id) {
+                        setLastOrderId(order.id);
+                        setShowInvoice(true);
+                    }
                 },
                 onError: () => {
                     toast.error(t('pos_page.toast.error'));
@@ -385,7 +385,25 @@ export default function POS() {
                         </p>
                     </CardContent>
                 </Card>
+
+                {/* Last invoice button */}
+                {lastOrderId && (
+                    <button
+                        onClick={() => setShowInvoice(true)}
+                        className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-primary/30 text-primary font-bold text-xs uppercase tracking-widest hover:bg-primary/5 transition-colors"
+                    >
+                        <Receipt className="h-4 w-4" />
+                        Voir la facture
+                    </button>
+                )}
             </div>
+
+            {/* Invoice Modal */}
+            <InvoiceModal
+                orderId={lastOrderId}
+                open={showInvoice}
+                onClose={() => setShowInvoice(false)}
+            />
         </div>
     );
 }

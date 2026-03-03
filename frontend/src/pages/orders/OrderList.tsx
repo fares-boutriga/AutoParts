@@ -14,14 +14,16 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, MoreHorizontal, ShoppingBag, Search } from 'lucide-react';
+import { Loader2, MoreHorizontal, ShoppingBag, Search, Receipt } from 'lucide-react';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
+import InvoiceModal from '@/components/InvoiceModal';
 
 export default function OrderList() {
     const { t } = useTranslation();
@@ -29,6 +31,7 @@ export default function OrderList() {
     const [page] = useState(1);
     const { data, isLoading, isError } = useOrders({ page, search, limit: 10 });
     const updateStatus = useUpdateOrderStatus();
+    const [invoiceOrderId, setInvoiceOrderId] = useState<string | null>(null);
 
     const handleStatusUpdate = async (id: string, status: string) => {
         try {
@@ -121,7 +124,7 @@ export default function OrderList() {
                                         {order.customer?.name || t('orders_page.walkIn')}
                                     </TableCell>
                                     <TableCell className="font-bold">
-                                        ${Number(order.totalAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        {Number(order.totalAmount || 0).toFixed(3)} TND
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant={getStatusColor(order.status) as any} className="font-bold uppercase text-[10px]">
@@ -129,28 +132,42 @@ export default function OrderList() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-muted-foreground text-sm">
-                                        {order.createdAt ? format(new Date(order.createdAt), 'MMM d, yyyy HH:mm') : 'N/A'}
+                                        {order.createdAt ? format(new Date(order.createdAt), 'dd/MM/yyyy HH:mm') : 'N/A'}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:text-primary">
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="w-48">
-                                                <DropdownMenuLabel>{t('orders_page.actions.changeStatus')}</DropdownMenuLabel>
-                                                <DropdownMenuItem onClick={() => handleStatusUpdate(order.id, 'COMPLETED')}>
-                                                    {t('orders_page.actions.completed')}
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleStatusUpdate(order.id, 'PENDING')}>
-                                                    {t('orders_page.actions.pending')}
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleStatusUpdate(order.id, 'CANCELLED')} className="text-destructive">
-                                                    {t('orders_page.actions.cancelled')}
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                                        <div className="flex items-center justify-end gap-2">
+                                            {/* Invoice button */}
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 gap-1.5 rounded-lg border-primary/20 text-primary hover:bg-primary/5"
+                                                onClick={() => setInvoiceOrderId(order.id)}
+                                            >
+                                                <Receipt className="h-3.5 w-3.5" />
+                                                Facture
+                                            </Button>
+
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:text-primary">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-48">
+                                                    <DropdownMenuLabel>{t('orders_page.actions.changeStatus')}</DropdownMenuLabel>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem onClick={() => handleStatusUpdate(order.id, 'COMPLETED')}>
+                                                        {t('orders_page.actions.completed')}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleStatusUpdate(order.id, 'PENDING')}>
+                                                        {t('orders_page.actions.pending')}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleStatusUpdate(order.id, 'CANCELLED')} className="text-destructive">
+                                                        {t('orders_page.actions.cancelled')}
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -158,6 +175,13 @@ export default function OrderList() {
                     </TableBody>
                 </Table>
             </div>
+
+            {/* Invoice Modal */}
+            <InvoiceModal
+                orderId={invoiceOrderId}
+                open={!!invoiceOrderId}
+                onClose={() => setInvoiceOrderId(null)}
+            />
         </div>
     );
 }

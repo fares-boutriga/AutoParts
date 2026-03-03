@@ -208,3 +208,20 @@ model Notification {
 
   @@map("notifications")
 }
+
+model StoreSettings {
+  id                  String   @id @default(uuid())
+  storeName           String   @default("Mon Magasin")
+  address             String?
+  phone               String?
+  email               String?
+  tva                 Decimal  @default(19) @db.Decimal(5, 2)
+  patente             String?
+  invoicePrefix       String   @default("FA-")
+  nextInvoiceNumber   Int      @default(1)
+  currency            String   @default("TND")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("store_settings")
+}

@@ -7,9 +7,11 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateMeDto } from './dto/update-me.dto';
 
 @Injectable()
 export class AuthService {
@@ -17,10 +19,10 @@ export class AuthService {
         private prisma: PrismaService,
         private jwtService: JwtService,
         private configService: ConfigService,
+        private emailService: EmailService,
     ) { }
 
     async register(registerDto: RegisterDto) {
-        // Check if user exists
         const existingUser = await this.prisma.user.findUnique({
             where: { email: registerDto.email },
         });
@@ -29,10 +31,8 @@ export class AuthService {
             throw new ConflictException('User with this email already exists');
         }
 
-        // Hash password
         const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
-        // Create user
         const user = await this.prisma.user.create({
             data: {
                 email: registerDto.email,
@@ -57,7 +57,6 @@ export class AuthService {
     }
 
     async login(loginDto: LoginDto) {
-        // Find user
         const user = await this.prisma.user.findUnique({
             where: { email: loginDto.email },
             include: {
@@ -86,28 +85,19 @@ export class AuthService {
             throw new UnauthorizedException('Invalid credentials');
         }
 
-        // Check if user is active
         if (!user.isActive) {
             throw new UnauthorizedException('User account is inactive');
         }
 
-        // Verify password
-        const isPasswordValid = await bcrypt.compare(
-            loginDto.password,
-            user.password,
-        );
+        const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
 
         if (!isPasswordValid) {
             throw new UnauthorizedException('Invalid credentials');
         }
 
-        // Generate tokens
         const tokens = await this.generateTokens(user.id, user.email);
-
-        // Save refresh token
         await this.saveRefreshToken(user.id, tokens.refreshToken);
 
-        // Remove password from response
         const { password, ...userWithoutPassword } = user;
 
         return {
@@ -116,14 +106,97 @@ export class AuthService {
         };
     }
 
+    async getMe(userId: string) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                phone: true,
+                isActive: true,
+                createdAt: true,
+                roles: { include: { role: true } },
+                outlets: { include: { outlet: true } },
+            },
+        });
+
+        if (!user) throw new UnauthorizedException('User not found');
+        return user;
+    }
+
+    async updateMe(userId: string, dto: UpdateMeDto) {
+        const currentUser = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: { roles: { include: { role: true } } },
+        });
+
+        if (!currentUser) {
+            throw new UnauthorizedException('User not found');
+        }
+
+        const isEmailChanging = dto.email && dto.email !== currentUser.email;
+
+        if (isEmailChanging) {
+            const existing = await this.prisma.user.findUnique({
+                where: { email: dto.email },
+            });
+            if (existing && existing.id !== userId) {
+                throw new ConflictException('Cette adresse email est déjà utilisée');
+            }
+        }
+
+        const updateData: any = {};
+        if (dto.name) updateData.name = dto.name;
+        if (dto.phone !== undefined) updateData.phone = dto.phone;
+        if (dto.email) updateData.email = dto.email;
+        if (dto.password) {
+            updateData.password = await bcrypt.hash(dto.password, 10);
+        }
+
+        const updated = await this.prisma.user.update({
+            where: { id: userId },
+            data: updateData,
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                phone: true,
+                isActive: true,
+                roles: { include: { role: true } },
+                outlets: { include: { outlet: true } },
+            },
+        });
+
+        // Notify admin if a non-admin user changed their email
+        if (isEmailChanging) {
+            const isAdmin = currentUser.roles.some(
+                (ur) => ur.role.name.toLowerCase() === 'admin',
+            );
+
+            if (!isAdmin) {
+                const adminEmail = this.configService.get<string>('ADMIN_EMAIL');
+                if (adminEmail) {
+                    this.emailService.sendEmailChangeNotification(
+                        adminEmail,
+                        currentUser.name,
+                        currentUser.email,
+                    ).catch((err) => {
+                        console.error('Failed to send email change notification:', err.message);
+                    });
+                }
+            }
+        }
+
+        return updated;
+    }
+
     async refreshToken(refreshToken: string) {
         try {
-            // Verify refresh token
             const payload = this.jwtService.verify(refreshToken, {
                 secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
             });
 
-            // Check if refresh token exists in database
             const storedToken = await this.prisma.refreshToken.findUnique({
                 where: { token: refreshToken },
                 include: { user: true },
@@ -133,26 +206,13 @@ export class AuthService {
                 throw new UnauthorizedException('Invalid refresh token');
             }
 
-            // Check if token is expired
             if (new Date() > storedToken.expiresAt) {
-                await this.prisma.refreshToken.delete({
-                    where: { id: storedToken.id },
-                });
+                await this.prisma.refreshToken.delete({ where: { id: storedToken.id } });
                 throw new UnauthorizedException('Refresh token expired');
             }
 
-            // Generate new tokens
-            const tokens = await this.generateTokens(
-                storedToken.user.id,
-                storedToken.user.email,
-            );
-
-            // Delete old refresh token
-            await this.prisma.refreshToken.delete({
-                where: { id: storedToken.id },
-            });
-
-            // Save new refresh token
+            const tokens = await this.generateTokens(storedToken.user.id, storedToken.user.email);
+            await this.prisma.refreshToken.delete({ where: { id: storedToken.id } });
             await this.saveRefreshToken(storedToken.user.id, tokens.refreshToken);
 
             return tokens;
@@ -163,9 +223,7 @@ export class AuthService {
 
     async logout(refreshToken: string) {
         try {
-            await this.prisma.refreshToken.delete({
-                where: { token: refreshToken },
-            });
+            await this.prisma.refreshToken.delete({ where: { token: refreshToken } });
             return { message: 'Logged out successfully' };
         } catch {
             throw new BadRequestException('Invalid refresh token');
@@ -186,40 +244,24 @@ export class AuthService {
             }),
         ]);
 
-        return {
-            accessToken,
-            refreshToken,
-        };
+        return { accessToken, refreshToken };
     }
 
     private async saveRefreshToken(userId: string, token: string) {
         const expiresIn = this.configService.get<string>('JWT_REFRESH_EXPIRATION') || '7d';
         const expiresAt = new Date();
 
-        // Parse expiration string (e.g., "7d", "24h")
         const match = expiresIn.match(/^(\d+)([dhm])$/);
         if (match) {
             const value = parseInt(match[1]);
             const unit = match[2];
             switch (unit) {
-                case 'd':
-                    expiresAt.setDate(expiresAt.getDate() + value);
-                    break;
-                case 'h':
-                    expiresAt.setHours(expiresAt.getHours() + value);
-                    break;
-                case 'm':
-                    expiresAt.setMinutes(expiresAt.getMinutes() + value);
-                    break;
+                case 'd': expiresAt.setDate(expiresAt.getDate() + value); break;
+                case 'h': expiresAt.setHours(expiresAt.getHours() + value); break;
+                case 'm': expiresAt.setMinutes(expiresAt.getMinutes() + value); break;
             }
         }
 
-        await this.prisma.refreshToken.create({
-            data: {
-                token,
-                userId,
-                expiresAt,
-            },
-        });
+        await this.prisma.refreshToken.create({ data: { token, userId, expiresAt } });
     }
 }

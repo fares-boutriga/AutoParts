@@ -2,6 +2,7 @@ import { useAuthStore } from '@/lib/auth/store';
 import { Bell, Menu, User, ChevronDown, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -105,8 +106,10 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56 rounded-2xl border-none shadow-2xl p-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl">
                         <DropdownMenuLabel className="px-4 py-2 font-black uppercase text-[10px] tracking-widest text-slate-400">{t('header.accountAccess')}</DropdownMenuLabel>
-                        <DropdownMenuItem className="rounded-xl px-4 py-3 focus:bg-primary/5 cursor-pointer font-bold">
-                            {t('header.profileSettings')}
+                        <DropdownMenuItem className="rounded-xl px-4 py-3 focus:bg-primary/5 cursor-pointer font-bold" asChild>
+                            <Link to="/profile">
+                                {t('header.profileSettings')}
+                            </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem className="rounded-xl px-4 py-3 focus:bg-primary/5 cursor-pointer font-bold text-rose-500 focus:text-rose-600" onClick={() => logout()}>
                             {t('header.terminateSession')}

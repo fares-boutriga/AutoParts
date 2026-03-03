@@ -11,11 +11,12 @@ import StockAlerts from '@/pages/stock/StockAlerts';
 import OrderList from '@/pages/orders/OrderList';
 import POS from '@/pages/pos/POS';
 import CustomerList from '@/pages/customers/CustomerList';
-import OutletList from '@/pages/outlets/OutletList';
 import UserList from '@/pages/users/UserList';
 import RoleList from '@/pages/roles/RoleList';
 import NotificationList from '@/pages/notifications/NotificationList';
 import CategoryList from '@/pages/categories/CategoryList';
+import StoreSettingsPage from '@/pages/settings/StoreSettings';
+import UserProfile from '@/pages/profile/UserProfile';
 
 // Protected Route Guard
 const ProtectedRoute = () => {
@@ -49,7 +50,8 @@ function App() {
           <Route path="stock/alerts" element={<StockAlerts />} />
           <Route path="orders" element={<OrderList />} />
           <Route path="customers" element={<CustomerList />} />
-          <Route path="outlets" element={<OutletList />} />
+          <Route path="settings" element={<StoreSettingsPage />} />
+          <Route path="profile" element={<UserProfile />} />
           <Route path="users" element={<UserList />} />
           <Route path="roles" element={<RoleList />} />
           <Route path="notifications" element={<NotificationList />} />

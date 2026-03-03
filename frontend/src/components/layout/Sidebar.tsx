@@ -12,7 +12,9 @@ import {
     Bell,
     UserCog,
     Shield,
-    ChevronRight
+    ChevronRight,
+    Settings,
+    User
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth/store';
 import { useTranslation } from 'react-i18next';
@@ -38,7 +40,6 @@ const sidebarGroups = [
         titleKey: "sidebar.people",
         items: [
             { nameKey: 'sidebar.crm', href: '/customers', icon: Users },
-            { nameKey: 'sidebar.outlets', href: '/outlets', icon: Store },
         ]
     },
     {
@@ -47,6 +48,7 @@ const sidebarGroups = [
             { nameKey: 'sidebar.staff', href: '/users', icon: UserCog },
             { nameKey: 'sidebar.permissions', href: '/roles', icon: Shield },
             { nameKey: 'sidebar.alerts', href: '/notifications', icon: Bell },
+            { nameKey: 'sidebar.settings', href: '/settings', icon: Settings },
         ]
     }
 ];
