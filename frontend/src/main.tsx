@@ -6,6 +6,9 @@ import { Toaster } from 'react-hot-toast';
 import App from './App';
 import './i18n';
 import './index.css';
+import { initializeTheme } from '@/lib/theme';
+
+initializeTheme();
 
 const queryClient = new QueryClient({
   defaultOptions: {

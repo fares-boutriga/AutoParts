@@ -1,8 +1,9 @@
 import { useAuthStore } from '@/lib/auth/store';
-import { Bell, Menu, User, ChevronDown, Globe } from 'lucide-react';
+import { Bell, Menu, User, ChevronDown, Globe, Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -10,14 +11,22 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { getActiveTheme, setThemePreference, type AppTheme } from '@/lib/theme';
 
 export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
     const { t, i18n } = useTranslation();
+    const [theme, setTheme] = useState<AppTheme>(() => getActiveTheme());
 
     const changeLanguage = (lng: string) => {
         i18n.changeLanguage(lng);
+    };
+
+    const toggleTheme = () => {
+        const nextTheme: AppTheme = theme === 'dark' ? 'light' : 'dark';
+        setThemePreference(nextTheme);
+        setTheme(nextTheme);
     };
 
     return (
@@ -55,6 +64,16 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                     <Bell className="h-5 w-5" />
                     <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-rose-500 border-2 border-white dark:border-slate-900" />
                     <span className="sr-only">{t('header.notifications')}</span>
+                </Button>
+
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleTheme}
+                    className="relative rounded-xl h-10 w-10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400"
+                >
+                    {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                    <span className="sr-only">Toggle theme</span>
                 </Button>
 
                 <DropdownMenu>
