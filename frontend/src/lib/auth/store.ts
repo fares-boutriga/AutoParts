@@ -1,11 +1,23 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-interface User {
+export interface AuthUser {
     id: string;
     email: string;
     name: string;
-    role: string;
+    role?: string;
+    roles?: {
+        role: {
+            id: string;
+            name: string;
+            permissions?: {
+                permission: {
+                    id: string;
+                    name: string;
+                };
+            }[];
+        };
+    }[];
     outlets?: {
         outlet: {
             id: string;
@@ -15,10 +27,10 @@ interface User {
 }
 
 interface AuthState {
-    user: User | null;
+    user: AuthUser | null;
     token: string | null;
     isAuthenticated: boolean;
-    login: (user: User, token: string) => void;
+    login: (user: AuthUser, token: string) => void;
     logout: () => void;
 }
 

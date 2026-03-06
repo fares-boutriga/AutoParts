@@ -247,13 +247,13 @@ export default function ProductForm() {
                                         <div className="space-y-2">
                                             <Label htmlFor="purchasePrice" className="text-xs font-black uppercase tracking-widest text-slate-500">{t('product_form.pricingStrategy.purchasePrice')}</Label>
                                             <div className="relative group">
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 group-focus-within:text-primary transition-colors">$</span>
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] font-black tracking-wide text-slate-400 group-focus-within:text-primary transition-colors">TND</span>
                                                 <Input
                                                     id="purchasePrice"
                                                     type="number"
                                                     step="0.01"
                                                     {...register('purchasePrice')}
-                                                    className="pl-8 h-12 rounded-xl border-slate-200 focus:ring-primary font-black text-lg"
+                                                    className="pl-14 h-12 rounded-xl border-slate-200 focus:ring-primary font-black text-lg"
                                                 />
                                             </div>
                                             {errors.purchasePrice && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">{t(String(errors.purchasePrice.message))}</p>}
@@ -264,13 +264,13 @@ export default function ProductForm() {
                                         <div className="space-y-2">
                                             <Label htmlFor="sellingPrice" className="text-xs font-black uppercase tracking-widest text-slate-500">{t('product_form.pricingStrategy.sellingPrice')}</Label>
                                             <div className="relative group">
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 group-focus-within:text-primary transition-colors">$</span>
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] font-black tracking-wide text-slate-400 group-focus-within:text-primary transition-colors">TND</span>
                                                 <Input
                                                     id="sellingPrice"
                                                     type="number"
                                                     step="0.01"
                                                     {...register('sellingPrice')}
-                                                    className="pl-8 h-12 rounded-xl border-primary bg-primary/5 focus:ring-primary font-black text-2xl text-primary"
+                                                    className="pl-14 h-12 rounded-xl border-primary bg-primary/5 focus:ring-primary font-black text-2xl text-primary"
                                                 />
                                             </div>
                                             {errors.sellingPrice && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">{t(String(errors.sellingPrice.message))}</p>}

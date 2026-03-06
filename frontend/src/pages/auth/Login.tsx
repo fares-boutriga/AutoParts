@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/lib/auth/store';
 import api from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
+import { buildPathFromLocation, sanitizeRedirectPath } from '@/lib/auth/redirect';
 
 const loginSchema = z.object({
     email: z.string().email('Please enter a valid email address'),
@@ -22,6 +23,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
     const login = useAuthStore((state) => state.login);
 
     const {
@@ -42,9 +44,16 @@ export default function Login() {
             const response = await api.post('/auth/login', data);
             const { user, accessToken } = response.data;
 
+            const redirectParam = new URLSearchParams(location.search).get('redirect');
+            const fromState = (location.state as { from?: { pathname?: string; search?: string; hash?: string } } | null)?.from;
+            const statePath = fromState
+                ? buildPathFromLocation(fromState.pathname, fromState.search, fromState.hash)
+                : undefined;
+            const targetPath = sanitizeRedirectPath(redirectParam || statePath);
+
             login(user, accessToken);
             toast.success('Logged in successfully');
-            navigate('/');
+            navigate(targetPath, { replace: true });
         } catch (error: any) {
             console.error('Login error:', error);
             const message = error.response?.data?.message || 'Failed to login. Please check your credentials.';

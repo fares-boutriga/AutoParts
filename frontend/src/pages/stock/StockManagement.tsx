@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useStock, useAdjustStock, useUpdateStockSettings } from '@/hooks/useStock';
-import { useOutlets } from '@/hooks/useOutlets';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,13 +19,6 @@ import {
     DialogDescription,
     DialogFooter,
 } from '@/components/ui/dialog';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import {
@@ -36,7 +28,6 @@ import {
     History,
     AlertCircle,
     Search,
-    Filter,
     RefreshCcw,
     Settings2,
 } from 'lucide-react';
@@ -48,17 +39,13 @@ import { useTranslation } from 'react-i18next';
 export default function StockManagement() {
     const { t } = useTranslation();
     const [search, setSearch] = useState('');
-    const [selectedOutlet, setSelectedOutlet] = useState<string>('all');
     const [adjustingStock, setAdjustingStock] = useState<Stock | null>(null);
     const [adjustmentAmount, setAdjustmentAmount] = useState<string>('');
     const [editingStock, setEditingStock] = useState<Stock | null>(null);
     const [minStock, setMinStock] = useState<string>('');
     const [reason, setReason] = useState<string>('Inventory check');
 
-    const { data: outlets } = useOutlets();
-    const { data: stocks, isLoading, isError, refetch } = useStock({
-        outletId: selectedOutlet === 'all' ? undefined : selectedOutlet
-    });
+    const { data: stocks, isLoading, isError, refetch } = useStock();
 
     const adjustStock = useAdjustStock();
     const updateStockSettings = useUpdateStockSettings();
@@ -144,33 +131,15 @@ export default function StockManagement() {
                             className="h-12 pl-11 rounded-2xl border-none bg-slate-100/50 dark:bg-slate-800/50 focus-visible:ring-primary"
                         />
                     </div>
-                    <div className="flex gap-4 w-full sm:w-auto">
-                        <div className="flex items-center gap-2 flex-1 sm:flex-initial">
-                            <Filter className="h-5 w-5 text-slate-400" />
-                            <Select value={selectedOutlet} onValueChange={setSelectedOutlet}>
-                                <SelectTrigger className="h-12 w-[200px] rounded-2xl border-none bg-slate-100/50 dark:bg-slate-800/50">
-                                    <SelectValue placeholder={t('stock_management.allOutlets')} />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-2xl border-none shadow-2xl">
-                                    <SelectItem value="all">{t('stock_management.allOutlets')}</SelectItem>
-                                    {outlets?.map(outlet => (
-                                        <SelectItem key={outlet.id} value={outlet.id}>
-                                            {outlet.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => refetch()}
-                            disabled={isLoading}
-                            className="h-12 w-12 rounded-2xl hover:bg-primary/10 hover:text-primary transition-colors"
-                        >
-                            <RefreshCcw className={cn("h-5 w-5", isLoading && "animate-spin")} />
-                        </Button>
-                    </div>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => refetch()}
+                        disabled={isLoading}
+                        className="h-12 w-12 rounded-2xl hover:bg-primary/10 hover:text-primary transition-colors"
+                    >
+                        <RefreshCcw className={cn("h-5 w-5", isLoading && "animate-spin")} />
+                    </Button>
                 </CardContent>
             </Card>
 
@@ -181,7 +150,6 @@ export default function StockManagement() {
                         <TableHeader>
                             <TableRow className="bg-slate-50/50 dark:bg-slate-800/50 hover:bg-slate-50/50 border-none">
                                 <TableHead className="py-5 pl-8 font-bold text-slate-900 dark:text-slate-100">{t('stock_management.table.productInfo')}</TableHead>
-                                <TableHead className="py-5 font-bold text-slate-900 dark:text-slate-100">{t('stock_management.table.outlet')}</TableHead>
                                 <TableHead className="py-5 font-bold text-slate-900 dark:text-slate-100">{t('stock_management.table.status')}</TableHead>
                                 <TableHead className="py-5 font-bold text-slate-900 dark:text-slate-100">{t('stock_management.table.quantity')}</TableHead>
                                 <TableHead className="py-5 pr-8 text-right font-bold text-slate-900 dark:text-slate-100">{t('stock_management.table.actions')}</TableHead>
@@ -191,14 +159,14 @@ export default function StockManagement() {
                             {isLoading ? (
                                 [1, 2, 3, 4, 5].map((i) => (
                                     <TableRow key={i} className="border-none">
-                                        <TableCell colSpan={5} className="py-8">
+                                        <TableCell colSpan={4} className="py-8">
                                             <div className="h-12 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse mx-8" />
                                         </TableCell>
                                     </TableRow>
                                 ))
                             ) : filteredStocks.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-96 text-center">
+                                    <TableCell colSpan={4} className="h-96 text-center">
                                         <div className="flex flex-col items-center justify-center space-y-4">
                                             <div className="h-24 w-24 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                                                 <Box className="h-12 w-12 text-slate-300" />
@@ -217,31 +185,18 @@ export default function StockManagement() {
                                     return (
                                         <TableRow key={stock.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 border-slate-100/50 dark:border-slate-800/50 transition-colors">
                                             <TableCell className="pl-8 py-4">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-100 to-primary/10 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
-                                                        <Box className="h-6 w-6" />
+                                                <div className="space-y-0.5">
+                                                    <p className="font-black text-slate-900 dark:text-slate-100 line-clamp-1">{stock.product.name}</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <Badge variant="outline" className="rounded-lg text-[10px] py-0 font-bold border-slate-200">
+                                                            {stock.product.reference}
+                                                        </Badge>
+                                                        {stock.product.category && (
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                                                {stock.product.category.name}
+                                                            </span>
+                                                        )}
                                                     </div>
-                                                    <div className="space-y-0.5">
-                                                        <p className="font-black text-slate-900 dark:text-slate-100 line-clamp-1">{stock.product.name}</p>
-                                                        <div className="flex items-center gap-2">
-                                                            <Badge variant="outline" className="rounded-lg text-[10px] py-0 font-bold border-slate-200">
-                                                                {stock.product.reference}
-                                                            </Badge>
-                                                            {stock.product.category && (
-                                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                                                    {stock.product.category.name}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="h-2 w-2 rounded-full bg-primary" />
-                                                    <span className="font-bold text-slate-700 dark:text-slate-300 text-sm">
-                                                        {stock.outlet.name}
-                                                    </span>
                                                 </div>
                                             </TableCell>
                                             <TableCell>

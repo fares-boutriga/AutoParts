@@ -18,6 +18,7 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     const logout = useAuthStore((state) => state.logout);
     const { t, i18n } = useTranslation();
     const [theme, setTheme] = useState<AppTheme>(() => getActiveTheme());
+    const primaryRole = user?.roles?.[0]?.role?.name || user?.role || t('header.authorizedUser');
 
     const changeLanguage = (lng: string) => {
         i18n.changeLanguage(lng);
@@ -117,7 +118,7 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                                     {user?.name || t('header.authorizedUser')}
                                 </span>
                                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
-                                    {t('header.administrator')}
+                                    {primaryRole}
                                 </span>
                             </div>
                             <ChevronDown className="h-4 w-4 text-slate-400 group-hover:text-primary transition-colors hidden md:block" />

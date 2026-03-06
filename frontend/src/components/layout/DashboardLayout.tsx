@@ -10,7 +10,7 @@ export default function DashboardLayout() {
     return (
         <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr] bg-slate-50 dark:bg-slate-950">
             {/* Desktop Sidebar */}
-            <div className="hidden lg:block">
+            <div className="hidden lg:block lg:sticky lg:top-0 lg:h-screen">
                 <Sidebar />
             </div>
 

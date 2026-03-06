@@ -180,7 +180,7 @@ function CustomerDetailSheet({ customerId, onClose }: { customerId: string; onCl
                             </div>
                             <div className="rounded-2xl bg-emerald-500/5 border border-emerald-500/10 p-4">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Spent</p>
-                                <p className="text-2xl font-black text-emerald-600 mt-1">${totalSpend.toFixed(2)}</p>
+                                <p className="text-2xl font-black text-emerald-600 mt-1">{totalSpend.toFixed(2)} TND</p>
                             </div>
                         </div>
 
@@ -199,7 +199,7 @@ function CustomerDetailSheet({ customerId, onClose }: { customerId: string; onCl
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
                                                     <ShoppingBag className="h-4 w-4 text-primary" />
-                                                    <span className="font-black text-sm">${Number(order.totalAmount).toFixed(2)}</span>
+                                                    <span className="font-black text-sm">{Number(order.totalAmount).toFixed(2)} TND</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <Badge className={cn(
@@ -226,7 +226,7 @@ function CustomerDetailSheet({ customerId, onClose }: { customerId: string; onCl
                                                                 )}
                                                             </span>
                                                             <span className="font-black text-slate-700 dark:text-slate-200">
-                                                                {item.quantity}x ${Number(item.unitPrice).toFixed(2)}
+                                                                {item.quantity}x {Number(item.unitPrice).toFixed(2)} TND
                                                             </span>
                                                         </div>
                                                     ))}

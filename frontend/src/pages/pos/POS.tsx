@@ -209,7 +209,7 @@ export default function POS() {
                                                     {product.reference}
                                                 </Badge>
                                                 <span className="text-lg font-black text-primary">
-                                                    ${Number(product.sellingPrice).toFixed(2)}
+                                                    {Number(product.sellingPrice).toFixed(2)} TND
                                                 </span>
                                             </div>
                                             <h3 className="font-bold text-slate-900 dark:text-slate-100 line-clamp-2 mb-2 group-hover:text-primary transition-colors">
@@ -299,7 +299,7 @@ export default function POS() {
                                                         REF: {item.product.reference}
                                                     </span>
                                                     <span className="text-xs font-black text-primary">
-                                                        ${Number(item.product.sellingPrice).toFixed(2)}
+                                                        {Number(item.product.sellingPrice).toFixed(2)} TND
                                                     </span>
                                                 </div>
                                             </div>
@@ -337,12 +337,12 @@ export default function POS() {
                         <div className="w-full space-y-2">
                             <div className="flex justify-between text-slate-500 font-bold text-sm">
                                 <span>{t('pos_page.subtotal')}</span>
-                                <span>${cartTotal.toFixed(2)}</span>
+                                <span>{cartTotal.toFixed(2)} TND</span>
                             </div>
                             <div className="flex justify-between items-end">
                                 <span className="text-xl font-black">{t('pos_page.totalAmount')}</span>
                                 <span className="text-4xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                                    ${cartTotal.toFixed(2)}
+                                    {cartTotal.toFixed(2)} TND
                                 </span>
                             </div>
                         </div>

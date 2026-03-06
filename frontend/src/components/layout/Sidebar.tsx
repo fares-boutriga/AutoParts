@@ -15,50 +15,71 @@ import {
     ChevronRight,
     Settings
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth/store';
 import { useTranslation } from 'react-i18next';
+import { hasPermission, type PermissionKey } from '@/lib/auth/permissions';
 
-const sidebarGroups = [
+type SidebarItem = {
+    nameKey: string;
+    href: string;
+    icon: LucideIcon;
+    requiredPermission?: PermissionKey;
+};
+
+type SidebarGroup = {
+    titleKey: string;
+    items: SidebarItem[];
+};
+
+const sidebarGroups: SidebarGroup[] = [
     {
         titleKey: "sidebar.commerce",
         items: [
             { nameKey: 'sidebar.dashboard', href: '/', icon: LayoutDashboard },
-            { nameKey: 'sidebar.pos', href: '/pos', icon: ShoppingCart },
-            { nameKey: 'sidebar.orders', href: '/orders', icon: TicketPercent },
+            { nameKey: 'sidebar.pos', href: '/pos', icon: ShoppingCart, requiredPermission: 'sell_products' },
+            { nameKey: 'sidebar.orders', href: '/orders', icon: TicketPercent, requiredPermission: 'sell_products' },
         ]
     },
     {
         titleKey: "sidebar.inventory",
         items: [
-            { nameKey: 'sidebar.catalog', href: '/products', icon: Package },
-            { nameKey: 'sidebar.categories', href: '/categories', icon: Store },
-            { nameKey: 'sidebar.stock', href: '/stock', icon: Box },
+            { nameKey: 'sidebar.catalog', href: '/products', icon: Package, requiredPermission: 'manage_products' },
+            { nameKey: 'sidebar.categories', href: '/categories', icon: Store, requiredPermission: 'manage_products' },
+            { nameKey: 'sidebar.stock', href: '/stock', icon: Box, requiredPermission: 'manage_stock' },
         ]
     },
     {
         titleKey: "sidebar.people",
         items: [
-            { nameKey: 'sidebar.crm', href: '/customers', icon: Users },
+            { nameKey: 'sidebar.crm', href: '/customers', icon: Users, requiredPermission: 'manage_customers' },
         ]
     },
     {
         titleKey: "sidebar.system",
         items: [
-            { nameKey: 'sidebar.staff', href: '/users', icon: UserCog },
-            { nameKey: 'sidebar.permissions', href: '/roles', icon: Shield },
-            { nameKey: 'sidebar.alerts', href: '/notifications', icon: Bell },
-            { nameKey: 'sidebar.settings', href: '/settings', icon: Settings },
+            { nameKey: 'sidebar.staff', href: '/users', icon: UserCog, requiredPermission: 'manage_users' },
+            { nameKey: 'sidebar.permissions', href: '/roles', icon: Shield, requiredPermission: 'manage_roles' },
+            { nameKey: 'sidebar.alerts', href: '/notifications', icon: Bell, requiredPermission: 'view_notifications' },
+            { nameKey: 'sidebar.settings', href: '/settings', icon: Settings, requiredPermission: 'manage_outlets' },
         ]
     }
 ];
 
 export function Sidebar() {
     const location = useLocation();
+    const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
     const { t } = useTranslation();
+    const visibleGroups = sidebarGroups
+        .map((group) => ({
+            ...group,
+            items: group.items.filter((item) => hasPermission(user, item.requiredPermission)),
+        }))
+        .filter((group) => group.items.length > 0);
 
     return (
-        <div className="flex flex-col h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/5 shadow-2xl z-20 overflow-hidden">
+        <div className="flex flex-col h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/5 shadow-2xl z-20 overflow-hidden">
             {/* Logo Header */}
             <div className="h-20 flex items-center px-8 bg-slate-50 dark:bg-black/20 backdrop-blur-xl border-b border-slate-200 dark:border-white/5">
                 <Link to="/" className="flex items-center gap-3 group">
@@ -77,8 +98,8 @@ export function Sidebar() {
             </div>
 
             {/* Navigation */}
-            <div className="flex-1 overflow-y-auto py-6 px-4 space-y-8 scrollbar-hide">
-                {sidebarGroups.map((group, groupIdx) => (
+            <div className="flex-1 overflow-y-auto py-6 px-4 space-y-8 sidebar-scrollbar">
+                {visibleGroups.map((group, groupIdx) => (
                     <div key={groupIdx} className="space-y-3 animate-in fade-in slide-in-from-left-4 duration-500" style={{ animationDelay: `${groupIdx * 0.1}s` }}>
                         <h3 className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500">
                             {t(group.titleKey as any)}

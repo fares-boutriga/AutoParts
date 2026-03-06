@@ -1,5 +1,6 @@
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/lib/auth/store';
+import type { ReactNode } from 'react';
 import Login from '@/pages/auth/Login';
 import Register from '@/pages/auth/Register';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -17,17 +18,45 @@ import NotificationList from '@/pages/notifications/NotificationList';
 import CategoryList from '@/pages/categories/CategoryList';
 import StoreSettingsPage from '@/pages/settings/StoreSettings';
 import UserProfile from '@/pages/profile/UserProfile';
+import AccessDenied from '@/pages/errors/AccessDenied';
+import { hasPermission, type PermissionKey } from '@/lib/auth/permissions';
+import {
+  buildLoginRedirectUrl,
+  buildPathFromLocation,
+  sanitizeRedirectPath,
+} from '@/lib/auth/redirect';
 
 // Protected Route Guard
 const ProtectedRoute = () => {
+  const location = useLocation();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  if (isAuthenticated) return <Outlet />;
+
+  const returnTo = sanitizeRedirectPath(
+    buildPathFromLocation(location.pathname, location.search, location.hash),
+  );
+
+  return (
+    <Navigate
+      to={buildLoginRedirectUrl(returnTo)}
+      replace
+      state={{ from: location }}
+    />
+  );
 };
 
 // Public Route Guard (redirect to dashboard if already logged in)
 const PublicRoute = () => {
+  const location = useLocation();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  return isAuthenticated ? <Navigate to="/" replace /> : <Outlet />;
+  const redirectParam = new URLSearchParams(location.search).get('redirect');
+  const redirectTo = sanitizeRedirectPath(redirectParam);
+  return isAuthenticated ? <Navigate to={redirectTo} replace /> : <Outlet />;
+};
+
+const PermissionRoute = ({ permission, children }: { permission: PermissionKey; children: ReactNode }) => {
+  const user = useAuthStore((state) => state.user);
+  return hasPermission(user, permission) ? <>{children}</> : <AccessDenied />;
 };
 
 function App() {
@@ -39,22 +68,113 @@ function App() {
       </Route>
 
       <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<DashboardLayout />}>
+          <Route path="/" element={<DashboardLayout />}>
           <Route index element={<Dashboard />} />
-          <Route path="pos" element={<POS />} />
-          <Route path="products" element={<ProductList />} />
-          <Route path="products/new" element={<ProductForm />} />
-          <Route path="products/:id/edit" element={<ProductForm />} />
-          <Route path="categories" element={<CategoryList />} />
-          <Route path="stock" element={<StockManagement />} />
-          <Route path="stock/alerts" element={<StockAlerts />} />
-          <Route path="orders" element={<OrderList />} />
-          <Route path="customers" element={<CustomerList />} />
-          <Route path="settings" element={<StoreSettingsPage />} />
+          <Route
+            path="pos"
+            element={(
+              <PermissionRoute permission="sell_products">
+                <POS />
+              </PermissionRoute>
+            )}
+          />
+          <Route
+            path="products"
+            element={(
+              <PermissionRoute permission="manage_products">
+                <ProductList />
+              </PermissionRoute>
+            )}
+          />
+          <Route
+            path="products/new"
+            element={(
+              <PermissionRoute permission="manage_products">
+                <ProductForm />
+              </PermissionRoute>
+            )}
+          />
+          <Route
+            path="products/:id/edit"
+            element={(
+              <PermissionRoute permission="manage_products">
+                <ProductForm />
+              </PermissionRoute>
+            )}
+          />
+          <Route
+            path="categories"
+            element={(
+              <PermissionRoute permission="manage_products">
+                <CategoryList />
+              </PermissionRoute>
+            )}
+          />
+          <Route
+            path="stock"
+            element={(
+              <PermissionRoute permission="manage_stock">
+                <StockManagement />
+              </PermissionRoute>
+            )}
+          />
+          <Route
+            path="stock/alerts"
+            element={(
+              <PermissionRoute permission="view_notifications">
+                <StockAlerts />
+              </PermissionRoute>
+            )}
+          />
+          <Route
+            path="orders"
+            element={(
+              <PermissionRoute permission="sell_products">
+                <OrderList />
+              </PermissionRoute>
+            )}
+          />
+          <Route
+            path="customers"
+            element={(
+              <PermissionRoute permission="manage_customers">
+                <CustomerList />
+              </PermissionRoute>
+            )}
+          />
+          <Route
+            path="settings"
+            element={(
+              <PermissionRoute permission="manage_outlets">
+                <StoreSettingsPage />
+              </PermissionRoute>
+            )}
+          />
           <Route path="profile" element={<UserProfile />} />
-          <Route path="users" element={<UserList />} />
-          <Route path="roles" element={<RoleList />} />
-          <Route path="notifications" element={<NotificationList />} />
+          <Route
+            path="users"
+            element={(
+              <PermissionRoute permission="manage_users">
+                <UserList />
+              </PermissionRoute>
+            )}
+          />
+          <Route
+            path="roles"
+            element={(
+              <PermissionRoute permission="manage_roles">
+                <RoleList />
+              </PermissionRoute>
+            )}
+          />
+          <Route
+            path="notifications"
+            element={(
+              <PermissionRoute permission="view_notifications">
+                <NotificationList />
+              </PermissionRoute>
+            )}
+          />
         </Route>
       </Route>
 

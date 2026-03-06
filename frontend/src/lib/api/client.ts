@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '@/lib/auth/store';
+import { buildLoginRedirectUrl, buildPathFromLocation } from '@/lib/auth/redirect';
 
 // Create API client instance with correct configurations
 const api = axios.create({
@@ -26,17 +27,27 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
-        const originalRequest = error.config;
+        const originalRequest = error.config || {};
+        const requestUrl = String(originalRequest.url || '');
+        const isAuthRequest =
+            requestUrl.includes('/auth/login') ||
+            requestUrl.includes('/auth/register') ||
+            requestUrl.includes('/auth/refresh');
 
         // If error is 401 and not already retrying
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        if (error.response?.status === 401 && !originalRequest._retry && !isAuthRequest) {
             originalRequest._retry = true;
 
             // Use the store's logout method to ensure state is properly cleared
             useAuthStore.getState().logout();
 
-            // Redirect to login
-            window.location.href = '/login';
+            // Redirect to login and preserve the current page for post-login return
+            const currentPath = buildPathFromLocation(
+                window.location.pathname,
+                window.location.search,
+                window.location.hash,
+            );
+            window.location.assign(buildLoginRedirectUrl(currentPath));
         }
 
         return Promise.reject(error);

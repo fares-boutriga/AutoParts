@@ -18,7 +18,7 @@ export default function Dashboard() {
                         </div>
                     </CardHeader>
                     <CardContent className="relative">
-                        <div className="text-3xl font-bold text-white">$45,231.89</div>
+                        <div className="text-3xl font-bold text-white">45,231.89 TND</div>
                         <div className="flex items-center gap-1 mt-1">
                             <TrendingUp className="h-4 w-4 text-green-200" />
                             <p className="text-sm text-white/80 font-medium">+20.1% {t('dashboard_page.fromLastMonth')}</p>

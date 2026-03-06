@@ -208,8 +208,8 @@ export default function ProductList() {
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col">
-                                                <span className="text-lg font-black text-slate-900 dark:text-slate-100">${Number(product.sellingPrice).toFixed(2)}</span>
-                                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter">Cost: ${Number(product.purchasePrice).toFixed(2)}</span>
+                                                <span className="text-lg font-black text-slate-900 dark:text-slate-100">{Number(product.sellingPrice).toFixed(2)} TND</span>
+                                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter">Cost: {Number(product.purchasePrice).toFixed(2)} TND</span>
                                             </div>
                                         </TableCell>
                                         <TableCell>
