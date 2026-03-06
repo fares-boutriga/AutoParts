@@ -49,15 +49,33 @@
     },
     "dashboard_page": {
         "totalRevenue": "Revenu Total",
-        "fromLastMonth": "depuis le mois dernier",
         "activeOrders": "Commandes Actives",
+        "todayOrders": "Commandes du Jour",
         "productsInStock": "Produits en Stock",
         "lowStockAlerts": "Alertes de Stock Faible",
         "requiresAttention": "Nécessite une attention",
+        "refresh": "Actualiser",
+        "retry": "Réessayer",
+        "errorTitle": "Impossible de charger le tableau de bord",
+        "errorSub": "Veuillez réessayer dans un instant.",
+        "errorApiOffline": "Le serveur API est hors ligne. Démarrez le backend sur http://localhost:3000.",
+        "periodToday": "Aujourd'hui",
+        "liveInventory": "Statut du stock en direct",
+        "noWidgets": "Aucun widget disponible pour vos permissions.",
         "recentSales": {
             "title": "Ventes Récentes",
             "empty": "Les transactions récentes apparaîtront ici",
-            "emptySub": "Commencez à faire des ventes pour voir l'activité"
+            "emptySub": "Commencez à faire des ventes pour voir l'activité",
+            "walkIn": "Client de Passage",
+            "table": {
+                "id": "Commande",
+                "customer": "Client",
+                "cashier": "Caissier",
+                "items": "Articles",
+                "total": "Total",
+                "payment": "Paiement",
+                "date": "Date"
+            }
         }
     },
     "pos_page": {

@@ -15,6 +15,7 @@ import { UsersModule } from './modules/users/users.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { StoreSettingsModule } from './modules/store-settings/store-settings.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { StoreSettingsModule } from './modules/store-settings/store-settings.mod
     EmailModule,
     StockAlertsModule,
     StoreSettingsModule,
+    DashboardModule,
   ],
 })
 export class AppModule { }

@@ -49,15 +49,33 @@
   },
   "dashboard_page": {
     "totalRevenue": "Total Revenue",
-    "fromLastMonth": "from last month",
     "activeOrders": "Active Orders",
+    "todayOrders": "Today's Orders",
     "productsInStock": "Products in Stock",
     "lowStockAlerts": "Low Stock Alerts",
     "requiresAttention": "Requires attention",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "errorTitle": "Unable to load dashboard",
+    "errorSub": "Please retry in a moment.",
+    "errorApiOffline": "API server is offline. Start backend on http://localhost:3000.",
+    "periodToday": "Today",
+    "liveInventory": "Live inventory status",
+    "noWidgets": "No dashboard widgets available for your permissions.",
     "recentSales": {
       "title": "Recent Sales",
       "empty": "Recent transactions will appear here",
-      "emptySub": "Start making sales to see activity"
+      "emptySub": "Start making sales to see activity",
+      "walkIn": "Walk-in Customer",
+      "table": {
+        "id": "Order",
+        "customer": "Customer",
+        "cashier": "Cashier",
+        "items": "Items",
+        "total": "Total",
+        "payment": "Payment",
+        "date": "Date"
+      }
     }
   },
   "pos_page": {
