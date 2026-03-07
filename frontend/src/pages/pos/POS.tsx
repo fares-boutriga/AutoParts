@@ -377,7 +377,7 @@ export default function POS() {
     }, []);
 
     return (
-        <div className="flex h-[calc(100vh-120px)] gap-6 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex flex-col lg:flex-row lg:h-[calc(100vh-120px)] gap-4 lg:gap-6 overflow-x-hidden lg:overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Product Selection Side */}
             <div className="flex-1 flex flex-col space-y-4 min-w-0">
                 <Card className="border-none shadow-xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
@@ -444,7 +444,7 @@ export default function POS() {
                         </p>
                     </CardHeader>
                     <CardContent className="h-full">
-                        <ScrollArea className="h-[calc(100vh-280px)] pr-4">
+                        <ScrollArea className="h-[48vh] sm:h-[52vh] lg:h-[calc(100vh-280px)] pr-2 sm:pr-4">
                             {isLoadingProducts ? (
                                 productsView === 'cards' ? (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -568,8 +568,8 @@ export default function POS() {
             </div>
 
             {/* Cart Side */}
-            <div className="w-[450px] flex flex-col space-y-4">
-                <Card className="flex-1 flex flex-col border-none shadow-2xl bg-white dark:bg-slate-900 rounded-3xl overflow-hidden">
+            <div className="w-full lg:w-[420px] xl:w-[450px] flex flex-col space-y-4">
+                <Card className="flex flex-col lg:flex-1 max-h-[72vh] lg:max-h-none border-none shadow-2xl bg-white dark:bg-slate-900 rounded-3xl overflow-hidden">
                     <CardHeader className="bg-slate-50 dark:bg-slate-800/50 border-b border-white dark:border-slate-800">
                         <div className="flex items-center justify-between">
                             <CardTitle className="flex items-center gap-2 text-xl font-black">

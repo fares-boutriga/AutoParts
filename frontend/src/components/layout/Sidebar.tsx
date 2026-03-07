@@ -66,15 +66,27 @@ const sidebarGroups: SidebarGroup[] = [
     }
 ];
 
-export function Sidebar() {
+export function Sidebar({
+    hidePrimaryNav = false,
+    onNavigate,
+}: {
+    hidePrimaryNav?: boolean;
+    onNavigate?: () => void;
+}) {
     const location = useLocation();
     const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
     const { t } = useTranslation();
+    const mobilePrimaryHrefs = new Set(['/', '/pos', '/orders']);
+
     const visibleGroups = sidebarGroups
         .map((group) => ({
             ...group,
-            items: group.items.filter((item) => hasPermission(user, item.requiredPermission)),
+            items: group.items.filter((item) => {
+                if (!hasPermission(user, item.requiredPermission)) return false;
+                if (hidePrimaryNav && mobilePrimaryHrefs.has(item.href)) return false;
+                return true;
+            }),
         }))
         .filter((group) => group.items.length > 0);
 
@@ -107,11 +119,14 @@ export function Sidebar() {
                         <nav className="space-y-1">
                             {group.items.map((item) => {
                                 const Icon = item.icon;
-                                const isActive = location.pathname === item.href;
+                                const isActive = item.href === '/'
+                                    ? location.pathname === '/'
+                                    : location.pathname.startsWith(item.href);
                                 return (
                                     <Link
                                         key={item.href}
                                         to={item.href}
+                                        onClick={onNavigate}
                                         className={cn(
                                             "flex items-center justify-between rounded-xl px-4 py-3.5 transition-all duration-300 group relative overflow-hidden",
                                             isActive
