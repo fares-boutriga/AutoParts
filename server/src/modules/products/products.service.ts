@@ -7,6 +7,13 @@ import { UpdateProductDto } from './dto/update-product.dto';
 export class ProductsService {
     constructor(private prisma: PrismaService) { }
 
+    private mapProductWithTotalQuantity(product: any) {
+        const { stocks, ...rest } = product;
+        const totalQuantity = stocks.reduce((sum: number, s: any) => sum + s.quantity, 0);
+        const isStocked = stocks.length > 0;
+        return { ...rest, totalQuantity, isStocked };
+    }
+
     async create(createProductDto: CreateProductDto) {
         const product = await this.prisma.product.create({
             data: createProductDto,
@@ -60,12 +67,7 @@ export class ProductsService {
             this.prisma.product.count({ where }),
         ]);
 
-        const data = rawProducts.map(product => {
-            const { stocks, ...rest } = (product as any);
-            const totalQuantity = stocks.reduce((sum: number, s: any) => sum + s.quantity, 0);
-            const isStocked = stocks.length > 0;
-            return { ...rest, totalQuantity, isStocked };
-        });
+        const data = rawProducts.map((product) => this.mapProductWithTotalQuantity(product));
 
         return {
             data,
@@ -96,6 +98,29 @@ export class ProductsService {
         }
 
         return product;
+    }
+
+    async findByReference(reference: string) {
+        const normalizedReference = reference.trim();
+
+        const product = await this.prisma.product.findFirst({
+            where: {
+                reference: {
+                    equals: normalizedReference,
+                    mode: 'insensitive',
+                },
+            },
+            include: {
+                category: true,
+                stocks: { select: { quantity: true } },
+            },
+        });
+
+        if (!product) {
+            throw new NotFoundException('Product not found');
+        }
+
+        return this.mapProductWithTotalQuantity(product);
     }
 
     async update(id: string, updateProductDto: UpdateProductDto) {

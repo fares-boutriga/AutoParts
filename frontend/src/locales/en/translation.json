@@ -89,9 +89,14 @@
       "error": "Failed to process order"
     },
     "partsSelection": "Parts Selection",
+    "viewCards": "Cards",
+    "viewList": "List",
     "searchPlaceholder": "Search parts or reference...",
+    "productsFound": "products found",
     "noProducts": "No products found",
     "inStock": "in stock",
+    "add": "Add",
+    "outOfStockTag": "Out of stock",
     "shoppingCart": "Shopping Cart",
     "itemsCount": "items",
     "walkInCustomer": "Walk-in Customer",
@@ -101,7 +106,35 @@
     "totalAmount": "Total Amount",
     "saveDraft": "Save Draft",
     "payComplete": "Pay & Complete",
-    "infoText": "Make sure to double check product references before completing the order."
+    "infoText": "Make sure to double check product references before completing the order.",
+    "scan": {
+      "openScanner": "Scan",
+      "title": "Scan Product Barcode",
+      "description": "Scan a product barcode or enter it manually to add item to cart.",
+      "helper": "Use camera scan first, fallback to manual code entry.",
+      "startingCamera": "Starting camera...",
+      "scanning": "Scanning barcode...",
+      "cameraUnavailable": "Camera scanner unavailable",
+      "useManual": "Use manual barcode input below.",
+      "manualLabel": "Manual / Scanner Input",
+      "manualPlaceholder": "Enter or scan product barcode",
+      "addByCode": "Add",
+      "stateIdle": "Waiting for scan or manual input.",
+      "stateScanning": "Scanning in progress...",
+      "stateSuccess": "Product added successfully.",
+      "close": "Close",
+      "retry": "Retry",
+      "errorTitle": "Scan Error",
+      "errorDescription": "An error happened while scanning product barcode.",
+      "errors": {
+        "not_found": "No product found for this barcode.",
+        "out_of_stock": "This product is out of stock.",
+        "camera_permission": "Camera permission denied. Enable camera access or use manual input.",
+        "camera_unsupported": "This device/browser does not support camera barcode detection. Use manual input.",
+        "camera_init": "Unable to start barcode scanner camera. Try again or use manual input.",
+        "backend": "Unable to validate barcode right now. Please try again."
+      }
+    }
   },
   "orders_page": {
     "title": "Order Management",

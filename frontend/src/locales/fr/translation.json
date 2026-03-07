@@ -89,9 +89,14 @@
             "error": "Échec du traitement de la commande"
         },
         "partsSelection": "Sélection de Pièces",
+        "viewCards": "Cartes",
+        "viewList": "Liste",
         "searchPlaceholder": "Rechercher des pièces ou référence...",
+        "productsFound": "produits trouvés",
         "noProducts": "Aucun produit trouvé",
         "inStock": "en stock",
+        "add": "Ajouter",
+        "outOfStockTag": "Rupture",
         "shoppingCart": "Panier d'Achats",
         "itemsCount": "articles",
         "walkInCustomer": "Client de Passage",
@@ -101,7 +106,35 @@
         "totalAmount": "Montant Total",
         "saveDraft": "Enregistrer Brouillon",
         "payComplete": "Payer & Compléter",
-        "infoText": "Assurez-vous de bien vérifier les références des produits avant de terminer la commande."
+        "infoText": "Assurez-vous de bien vérifier les références des produits avant de terminer la commande.",
+        "scan": {
+            "openScanner": "Scanner",
+            "title": "Scanner le code-barres produit",
+            "description": "Scannez un code-barres produit ou saisissez-le manuellement pour l'ajouter au panier.",
+            "helper": "Utilisez la caméra en premier, sinon la saisie manuelle.",
+            "startingCamera": "Démarrage de la caméra...",
+            "scanning": "Scan en cours...",
+            "cameraUnavailable": "Scanner caméra indisponible",
+            "useManual": "Utilisez la saisie manuelle ci-dessous.",
+            "manualLabel": "Saisie manuelle / lecteur",
+            "manualPlaceholder": "Saisir ou scanner le code-barres produit",
+            "addByCode": "Ajouter",
+            "stateIdle": "En attente d'un scan ou d'une saisie manuelle.",
+            "stateScanning": "Scan en cours...",
+            "stateSuccess": "Produit ajoute avec succes.",
+            "close": "Fermer",
+            "retry": "Réessayer",
+            "errorTitle": "Erreur de scan",
+            "errorDescription": "Une erreur est survenue pendant le scan du code-barres.",
+            "errors": {
+                "not_found": "Aucun produit trouvé pour ce code-barres.",
+                "out_of_stock": "Ce produit est en rupture de stock.",
+                "camera_permission": "Permission caméra refusée. Activez la caméra ou utilisez la saisie manuelle.",
+                "camera_unsupported": "Ce navigateur/appareil ne supporte pas la détection caméra. Utilisez la saisie manuelle.",
+                "camera_init": "Impossible de démarrer le scanner caméra. Réessayez ou utilisez la saisie manuelle.",
+                "backend": "Impossible de valider ce code-barres maintenant. Veuillez réessayer."
+            }
+        }
     },
     "orders_page": {
         "title": "Gestion des Commandes",

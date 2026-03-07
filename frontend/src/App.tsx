@@ -2,7 +2,6 @@ import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/lib/auth/store';
 import type { ReactNode } from 'react';
 import Login from '@/pages/auth/Login';
-import Register from '@/pages/auth/Register';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Dashboard from '@/pages/dashboard/Dashboard';
 import ProductList from '@/pages/products/ProductList';
@@ -64,7 +63,6 @@ function App() {
     <Routes>
       <Route element={<PublicRoute />}>
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
       </Route>
 
       <Route element={<ProtectedRoute />}>

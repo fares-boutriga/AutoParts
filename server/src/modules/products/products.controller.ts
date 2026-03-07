@@ -52,6 +52,12 @@ export class ProductsController {
         });
     }
 
+    @Get('by-reference/:reference')
+    @ApiOperation({ summary: 'Get product by exact reference (case-insensitive)' })
+    findByReference(@Param('reference') reference: string) {
+        return this.productsService.findByReference(reference);
+    }
+
     @Get(':id')
     @ApiOperation({ summary: 'Get product by ID' })
     findOne(@Param('id') id: string) {

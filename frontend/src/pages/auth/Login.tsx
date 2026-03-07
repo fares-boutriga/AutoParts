@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/lib/auth/store';
 import api from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
 import { buildPathFromLocation, sanitizeRedirectPath } from '@/lib/auth/redirect';
@@ -107,14 +107,6 @@ export default function Login() {
                         </Button>
                     </form>
                 </CardContent>
-                <CardFooter className="flex flex-col space-y-2 text-center text-sm text-muted-foreground">
-                    <div className="text-center text-sm">
-                        Don&apos;t have an account?{' '}
-                        <Link to="/register" className="underline underline-offset-4 hover:text-primary">
-                            Register
-                        </Link>
-                    </div>
-                </CardFooter>
             </Card>
         </div>
     );

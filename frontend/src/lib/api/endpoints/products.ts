@@ -52,6 +52,11 @@ const productsApi = {
         return response.data;
     },
 
+    getByReference: async (reference: string) => {
+        const response = await api.get<Product>(`/products/by-reference/${encodeURIComponent(reference)}`);
+        return response.data;
+    },
+
     create: async (data: CreateProductDto) => {
         const response = await api.post<Product>('/products', data);
         return response.data;
