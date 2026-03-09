@@ -4,9 +4,10 @@ import { Type } from 'class-transformer';
 import { OrderItemDto } from './order-item.dto';
 
 export class CreateOrderDto {
-    @ApiProperty()
+    @ApiProperty({ required: false })
+    @IsOptional()
     @IsString()
-    outletId: string;
+    outletId?: string;
 
     @ApiProperty({ required: false })
     @IsOptional()

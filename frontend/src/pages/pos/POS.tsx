@@ -3,6 +3,7 @@ import { useAuthStore } from '@/lib/auth/store';
 import { useProducts } from '@/hooks/useProducts';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useCreateOrder } from '@/hooks/useOrders';
+import { useOutlets } from '@/hooks/useOutlets';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -98,10 +99,11 @@ export default function POS() {
     const { user } = useAuthStore();
     const { data: productsData, isLoading: isLoadingProducts } = useProducts({ search, limit: 50 });
     const { data: customersData } = useCustomers({ limit: 100 });
+    const { data: outletsData } = useOutlets();
     const { mutate: createOrder } = useCreateOrder();
     const { t } = useTranslation();
 
-    const currentOutletId = user?.outlets?.[0]?.outlet.id;
+    const currentOutletId = user?.outlets?.[0]?.outlet.id ?? outletsData?.[0]?.id;
 
     const filteredProducts = productsData?.data ?? [];
     const customers = customersData?.data ?? [];
@@ -162,11 +164,6 @@ export default function POS() {
     const handleCheckout = () => {
         if (cart.length === 0) {
             toast.error(t('pos_page.toast.cartEmpty'));
-            return;
-        }
-
-        if (!currentOutletId) {
-            toast.error(t('pos_page.toast.noOutlet'));
             return;
         }
 

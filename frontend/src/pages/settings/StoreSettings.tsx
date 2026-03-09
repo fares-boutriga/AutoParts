@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useStoreSettings, useUpdateStoreSettings } from '@/hooks/useStoreSettings';
+import { useOutlets, useUpdateOutletAlerts } from '@/hooks/useOutlets';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import {
     Store, Phone, Mail, MapPin, FileText, Hash,
-    BadgePercent, Save, Loader2, Eye, Building2
+    BadgePercent, Save, Loader2, Eye, Building2, BellRing
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -100,7 +101,9 @@ function InvoicePreview({ settings }: { settings: any }) {
 
 export default function StoreSettingsPage() {
     const { data: settings, isLoading } = useStoreSettings();
+    const { data: outlets } = useOutlets();
     const update = useUpdateStoreSettings();
+    const updateOutletAlerts = useUpdateOutletAlerts();
 
     const [form, setForm] = useState({
         storeName: '',
@@ -112,6 +115,12 @@ export default function StoreSettingsPage() {
         invoicePrefix: 'FA-',
         currency: 'TND',
     });
+    const [notificationSettings, setNotificationSettings] = useState({
+        alertsEnabled: true,
+        alertEmail: '',
+    });
+
+    const primaryOutlet = outlets?.[0];
 
     useEffect(() => {
         if (settings) {
@@ -128,6 +137,15 @@ export default function StoreSettingsPage() {
         }
     }, [settings]);
 
+    useEffect(() => {
+        if (primaryOutlet) {
+            setNotificationSettings({
+                alertsEnabled: Boolean(primaryOutlet.alertsEnabled),
+                alertEmail: primaryOutlet.email || '',
+            });
+        }
+    }, [primaryOutlet]);
+
     const handleChange = (field: string, value: string) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
@@ -143,6 +161,26 @@ export default function StoreSettingsPage() {
             patente: form.patente,
             invoicePrefix: form.invoicePrefix,
             currency: form.currency,
+        });
+    };
+
+    const handleNotificationSettingsSubmit = () => {
+        if (!primaryOutlet) {
+            toast.error('Aucun point de vente configure');
+            return;
+        }
+
+        if (notificationSettings.alertsEnabled && !notificationSettings.alertEmail.trim()) {
+            toast.error("L'email de notification est requis");
+            return;
+        }
+
+        updateOutletAlerts.mutate({
+            id: primaryOutlet.id,
+            payload: {
+                alertsEnabled: notificationSettings.alertsEnabled,
+                alertEmail: notificationSettings.alertEmail.trim() || undefined,
+            },
         });
     };
 
@@ -240,6 +278,68 @@ export default function StoreSettingsPage() {
                                     <Input id="currency" value={form.currency} onChange={(e) => handleChange('currency', e.target.value)}
                                         placeholder="TND" className="h-11 rounded-xl" />
                                 </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-none shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <div className="h-8 w-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                                    <BellRing className="h-4 w-4" />
+                                </div>
+                                Parametres de Notification
+                            </CardTitle>
+                            <CardDescription>Activer/desactiver les notifications stock et choisir l'email de reception.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/40 p-4">
+                                    <div className="space-y-1">
+                                        <p className="font-bold">Notifications de stock</p>
+                                        <p className="text-xs text-slate-500">Envoyer un email quand le stock passe sous le minimum.</p>
+                                    </div>
+                                    <Switch
+                                        checked={notificationSettings.alertsEnabled}
+                                        onCheckedChange={(checked) =>
+                                            setNotificationSettings((prev) => ({ ...prev, alertsEnabled: checked }))
+                                        }
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="notificationEmail"><Mail className="inline h-3 w-3 mr-1" />Email de notification</Label>
+                                    <Input
+                                        id="notificationEmail"
+                                        type="email"
+                                        placeholder="admin@boutique.tn"
+                                        value={notificationSettings.alertEmail}
+                                        disabled={!notificationSettings.alertsEnabled}
+                                        onChange={(e) =>
+                                            setNotificationSettings((prev) => ({ ...prev, alertEmail: e.target.value }))
+                                        }
+                                        className="h-11 rounded-xl"
+                                    />
+                                    {!primaryOutlet && (
+                                        <p className="text-xs text-amber-600">Aucun point de vente configure. Creez un point de vente d'abord.</p>
+                                    )}
+                                </div>
+
+                                <Button
+                                    type="button"
+                                    onClick={handleNotificationSettingsSubmit}
+                                    disabled={updateOutletAlerts.isPending || !primaryOutlet}
+                                    className="w-full h-11 rounded-xl font-bold"
+                                >
+                                    {updateOutletAlerts.isPending ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            Enregistrement...
+                                        </>
+                                    ) : (
+                                        'Enregistrer les notifications'
+                                    )}
+                                </Button>
                             </div>
                         </CardContent>
                     </Card>

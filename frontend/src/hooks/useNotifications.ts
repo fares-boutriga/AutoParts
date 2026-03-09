@@ -2,10 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationsApi } from '@/lib/api/endpoints/notifications';
 import { toast } from 'react-hot-toast';
 
-export const useNotifications = (outletId?: string) => {
+export const useNotifications = () => {
     return useQuery({
-        queryKey: ['notifications', outletId],
-        queryFn: () => notificationsApi.getAll(outletId),
+        queryKey: ['notifications'],
+        queryFn: () => notificationsApi.getAll(),
     });
 };
 

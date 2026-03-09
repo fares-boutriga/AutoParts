@@ -27,7 +27,7 @@ export interface UpdateOutletPayload extends Partial<CreateOutletPayload> { }
 
 export interface UpdateOutletAlertsPayload {
     alertsEnabled: boolean;
-    email?: string;
+    alertEmail?: string;
 }
 
 export const outletsApi = {

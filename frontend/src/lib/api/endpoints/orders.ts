@@ -23,7 +23,7 @@ export interface Order {
 }
 
 export interface CreateOrderDto {
-    outletId: string;
+    outletId?: string;
     customerId?: string;
     totalAmount: number;
     paymentMethod: string;

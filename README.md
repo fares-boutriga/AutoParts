@@ -17,7 +17,7 @@ npm install
 
 # Set up environment variables
 cp .env.example .env
-# Edit .env with your database credentials and Gmail settings
+# Edit .env with your database credentials and OVH mail settings
 
 # Run database migrations
 npx prisma migrate dev
@@ -52,7 +52,7 @@ src/
 │   ├── orders/                 # POS & sales
 │   ├── customers/              # Customer management
 │   ├── notifications/          # In-app notifications
-│   ├── email/                  # Email service (Gmail)
+│   ├── email/                  # Email service (SMTP/OVH)
 │   └── stock-alerts/          # Stock alert system
 ```
 
@@ -104,7 +104,7 @@ Use `/auth/refresh` to get a new access token when it expires.
 ### 3. Stock Alert System
 - **Real-time alerts**: Triggered immediately on purchase
 - **Backup cron job**: Configurable periodic checks (default: 5 minutes)
-- **Multi-channel**: In-app notifications + email (Gmail)
+- **Multi-channel**: In-app notifications + email (SMTP/OVH)
 - **Smart cooldown**: 24-hour alert cooldown to prevent spam
 - **Configurable thresholds**: Global + outlet-specific minimum stock levels
 
@@ -202,20 +202,22 @@ JWT_REFRESH_EXPIRATION="7d"
 STOCK_CHECK_INTERVAL="*/5 * * * *"  # Cron: every 5 minutes
 STOCK_ALERT_COOLDOWN_HOURS=24
 
-# Gmail SMTP
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT=587
-SMTP_USER="your-email@gmail.com"
-SMTP_PASSWORD="your-gmail-app-password"
-EMAIL_FROM="Auto Parts POS <your-email@gmail.com>"
+# OVH SMTP
+SMTP_HOST="smtp.mail.ovh.net"
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER="contact@faresdev.tn"
+SMTP_PASSWORD="your-ovh-mail-password"
+EMAIL_FROM="Auto Parts POS <contact@faresdev.tn>"
+ADMIN_EMAIL="contact@faresdev.tn"
 ```
 
-### Gmail App Password Setup
+### OVH Mail Setup
 
-1. Enable 2-Factor Authentication on your Gmail account
-2. Go to Google Account → Security → 2-Step Verification → App Passwords
-3. Generate an app password for "Mail"
-4. Use this password in `SMTP_PASSWORD`
+1. Use your OVH mailbox full address as `SMTP_USER` (example: `contact@faresdev.tn`)
+2. Use your mailbox password in `SMTP_PASSWORD`
+3. Keep `SMTP_HOST=smtp.mail.ovh.net`, `SMTP_PORT=465`, and `SMTP_SECURE=true`
+4. Optional incoming mail settings (for clients): `IMAP imap.mail.ovh.net:993 (SSL/TLS)`
 
 ## 🚨 Stock Alert System
 
@@ -314,7 +316,7 @@ Features:
 - **Authentication**: JWT (access + refresh tokens)
 - **Validation**: class-validator, class-transformer
 - **Documentation**: Swagger/OpenAPI
-- **Email**: Nodemailer (Gmail)
+- **Email**: Nodemailer (SMTP/OVH)
 - **Scheduling**: @nestjs/schedule (cron jobs)
 
 ## 🛡️ Security

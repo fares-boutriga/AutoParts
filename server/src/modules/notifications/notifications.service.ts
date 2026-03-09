@@ -30,9 +30,12 @@ export class NotificationsService {
         }
     }
 
-    async markAllAsSeen(outletId: string) {
+    async markAllAsSeen(outletId?: string) {
+        const where: any = {};
+        if (outletId) where.outletId = outletId;
+
         return this.prisma.notification.updateMany({
-            where: { outletId },
+            where,
             data: { seen: true },
         });
     }

@@ -15,7 +15,8 @@ export class OrdersService {
     ) { }
 
     async create(createOrderDto: CreateOrderDto, cashierId: string) {
-        const { items, ...orderData } = createOrderDto;
+        const { items, customerId, paymentMethod, totalAmount } = createOrderDto;
+        const outletId = await this.resolveOutletId(cashierId, createOrderDto.outletId);
 
         // 1. Verify all stock is available (pre-transaction validation)
         for (const item of items) {
@@ -23,7 +24,7 @@ export class OrdersService {
                 where: {
                     productId_outletId: {
                         productId: item.productId,
-                        outletId: orderData.outletId,
+                        outletId,
                     },
                 },
                 include: { product: true },
@@ -47,11 +48,11 @@ export class OrdersService {
             // Create Order
             const order = await tx.order.create({
                 data: {
-                    outletId: orderData.outletId,
+                    outletId,
                     cashierId: cashierId,
-                    customerId: orderData.customerId,
-                    paymentMethod: orderData.paymentMethod,
-                    totalAmount: createOrderDto.totalAmount,
+                    customerId,
+                    paymentMethod,
+                    totalAmount,
                     items: {
                         create: items.map((item) => ({
                             productId: item.productId,
@@ -75,7 +76,7 @@ export class OrdersService {
                     where: {
                         productId_outletId: {
                             productId: item.productId,
-                            outletId: orderData.outletId,
+                            outletId,
                         },
                     },
                     include: {
@@ -124,6 +125,28 @@ export class OrdersService {
 
             return order;
         });
+    }
+
+    private async resolveOutletId(cashierId: string, requestedOutletId?: string): Promise<string> {
+        if (requestedOutletId) return requestedOutletId;
+
+        const assignedOutlet = await this.prisma.userOutlet.findFirst({
+            where: { userId: cashierId },
+            select: { outletId: true },
+        });
+        if (assignedOutlet?.outletId) {
+            return assignedOutlet.outletId;
+        }
+
+        const defaultOutlet = await this.prisma.outlet.findFirst({
+            select: { id: true },
+            orderBy: { createdAt: 'asc' },
+        });
+        if (defaultOutlet?.id) {
+            return defaultOutlet.id;
+        }
+
+        throw new BadRequestException('No outlet is configured in the system');
     }
 
     async findAll(filters?: {

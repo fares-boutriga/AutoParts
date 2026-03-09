@@ -1,21 +1,50 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
-export class EmailService {
-  private transporter;
+export class EmailService implements OnModuleInit {
+  private readonly logger = new Logger(EmailService.name);
+  private transporter: nodemailer.Transporter;
 
   constructor(private configService: ConfigService) {
+    const host = this.configService.get<string>('SMTP_HOST');
+    const portRaw = this.configService.get<string>('SMTP_PORT');
+    const secureRaw = this.configService.get<string>('SMTP_SECURE');
+    const port = Number(portRaw || 587);
+    const secure = this.parseBoolean(secureRaw, port === 465);
+
     this.transporter = nodemailer.createTransport({
-      host: this.configService.get<string>('SMTP_HOST'),
-      port: this.configService.get<number>('SMTP_PORT'),
-      secure: this.configService.get<boolean>('SMTP_SECURE') === true,
+      host,
+      port,
+      secure,
       auth: {
         user: this.configService.get<string>('SMTP_USER'),
         pass: this.configService.get<string>('SMTP_PASSWORD'),
       },
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 20000,
     });
+
+    this.logger.log(`SMTP configured: host=${host} port=${port} secure=${secure}`);
+  }
+
+  async onModuleInit() {
+    try {
+      await this.transporter.verify();
+      this.logger.log('SMTP connection verified successfully');
+    } catch (error: any) {
+      this.logger.error(`SMTP verify failed: ${error?.message || 'unknown error'}`);
+    }
+  }
+
+  private parseBoolean(value: string | undefined, fallback: boolean) {
+    if (!value) return fallback;
+    const normalized = value.trim().toLowerCase();
+    if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
+    if (['false', '0', 'no', 'off'].includes(normalized)) return false;
+    return fallback;
   }
 
   async sendStockAlert(
@@ -39,11 +68,12 @@ export class EmailService {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('✅ Email sent:', info.messageId);
+      this.logger.log(`Email sent: ${info.messageId}`);
       return { success: true, messageId: info.messageId };
     } catch (error) {
-      console.error('❌ Failed to send email:', error.message);
-      return { success: false, error: error.message };
+      const message = (error as any)?.message || 'Unknown mail error';
+      this.logger.error(`Failed to send email: ${message}`);
+      return { success: false, error: message };
     }
   }
 
@@ -95,11 +125,69 @@ export class EmailService {
                 `,
       };
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('✅ Email change notification sent:', info.messageId);
+      this.logger.log(`Email change notification sent: ${info.messageId}`);
       return { success: true, messageId: info.messageId };
     } catch (error) {
-      console.error('❌ Failed to send email change notification:', error.message);
-      return { success: false, error: error.message };
+      const message = (error as any)?.message || 'Unknown mail error';
+      this.logger.error(`Failed to send email change notification: ${message}`);
+      return { success: false, error: message };
+    }
+  }
+
+  async sendPasswordChangeNotification(
+    adminEmail: string,
+    userName: string,
+    userEmail: string,
+  ) {
+    try {
+      const now = new Date().toLocaleString('fr-TN', { timeZone: 'Africa/Tunis' });
+      const mailOptions = {
+        from: this.configService.get<string>('EMAIL_FROM'),
+        to: adminEmail,
+        subject: `Alerte securite - Changement de mot de passe (${userName})`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: #ef4444; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+              .content { background: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+              .info-box { background: #fff; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; }
+              .footer { text-align: center; margin-top: 20px; color: #777; font-size: 12px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header"><h1>Alerte securite</h1></div>
+              <div class="content">
+                <div class="info-box">
+                  <p><strong>Notification systeme :</strong> Un utilisateur a change son mot de passe.</p>
+                </div>
+                <p><strong>Utilisateur :</strong> ${userName}</p>
+                <p><strong>Email utilisateur :</strong> ${userEmail}</p>
+                <p><strong>Date de modification :</strong> ${now}</p>
+                <p style="margin-top:20px; color:#777; font-size:13px;">
+                  Verifiez cette action dans le panneau d'administration si ce changement n'etait pas attendu.
+                </p>
+              </div>
+              <div class="footer">
+                <p>Systeme Auto Parts POS &mdash; Notification automatique</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      this.logger.log(`Password change notification sent: ${info.messageId}`);
+      return { success: true, messageId: info.messageId };
+    } catch (error) {
+      const message = (error as any)?.message || 'Unknown mail error';
+      this.logger.error(`Failed to send password change notification: ${message}`);
+      return { success: false, error: message };
     }
   }
 

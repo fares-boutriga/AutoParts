@@ -136,6 +136,7 @@ export class AuthService {
         }
 
         const isEmailChanging = dto.email && dto.email !== currentUser.email;
+        const isPasswordChanging = Boolean(dto.password);
 
         if (isEmailChanging) {
             const existing = await this.prisma.user.findUnique({
@@ -168,23 +169,39 @@ export class AuthService {
             },
         });
 
-        // Notify admin if a non-admin user changed their email
-        if (isEmailChanging) {
-            const isAdmin = currentUser.roles.some(
-                (ur) => ur.role.name.toLowerCase() === 'admin',
+        // Notify admins for security-sensitive profile changes done by non-admin users
+        if (isEmailChanging || isPasswordChanging) {
+            const isAdmin = currentUser.roles.some((ur) =>
+                ur.role.name.toLowerCase().includes('admin'),
             );
 
             if (!isAdmin) {
-                const adminEmail = this.configService.get<string>('ADMIN_EMAIL');
-                if (adminEmail) {
-                    this.emailService.sendEmailChangeNotification(
-                        adminEmail,
-                        currentUser.name,
-                        currentUser.email,
-                    ).catch((err) => {
-                        console.error('Failed to send email change notification:', err.message);
-                    });
-                }
+                const recipients = await this.getAdminNotificationRecipients(userId);
+                recipients.forEach((adminEmail) => {
+                    if (isEmailChanging) {
+                        this.emailService
+                            .sendEmailChangeNotification(
+                                adminEmail,
+                                currentUser.name,
+                                currentUser.email,
+                            )
+                            .catch((err) => {
+                                console.error('Failed to send email change notification:', err.message);
+                            });
+                    }
+
+                    if (isPasswordChanging) {
+                        this.emailService
+                            .sendPasswordChangeNotification(
+                                adminEmail,
+                                currentUser.name,
+                                currentUser.email,
+                            )
+                            .catch((err) => {
+                                console.error('Failed to send password change notification:', err.message);
+                            });
+                    }
+                });
             }
         }
 
@@ -263,5 +280,40 @@ export class AuthService {
         }
 
         await this.prisma.refreshToken.create({ data: { token, userId, expiresAt } });
+    }
+
+    private async getAdminNotificationRecipients(excludeUserId: string): Promise<string[]> {
+        const recipients = new Set<string>();
+
+        const adminEmailFromConfig = this.configService.get<string>('ADMIN_EMAIL');
+        if (adminEmailFromConfig) {
+            recipients.add(adminEmailFromConfig.toLowerCase());
+        }
+
+        const adminUsers = await this.prisma.user.findMany({
+            where: {
+                id: { not: excludeUserId },
+                isActive: true,
+                roles: {
+                    some: {
+                        role: {
+                            name: {
+                                contains: 'admin',
+                                mode: 'insensitive',
+                            },
+                        },
+                    },
+                },
+            },
+            select: { email: true },
+        });
+
+        adminUsers.forEach((admin) => {
+            if (admin.email) {
+                recipients.add(admin.email.toLowerCase());
+            }
+        });
+
+        return [...recipients];
     }
 }

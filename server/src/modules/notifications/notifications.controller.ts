@@ -37,9 +37,9 @@ export class NotificationsController {
 
     @Patch('seen-all')
     @RequirePermissions('view_notifications')
-    @ApiOperation({ summary: 'Mark all notifications as seen for outlet' })
-    @ApiQuery({ name: 'outletId', required: true })
-    markAllAsSeen(@Query('outletId') outletId: string) {
+    @ApiOperation({ summary: 'Mark all notifications as seen' })
+    @ApiQuery({ name: 'outletId', required: false })
+    markAllAsSeen(@Query('outletId') outletId?: string) {
         return this.notificationsService.markAllAsSeen(outletId);
     }
 

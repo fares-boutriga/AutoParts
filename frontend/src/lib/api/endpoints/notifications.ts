@@ -11,9 +11,9 @@ export interface Notification {
 }
 
 export const notificationsApi = {
-    getAll: async (outletId?: string) => {
+    getAll: async () => {
         const response = await api.get<Notification[]>('/notifications', {
-            params: { outletId }
+            params: undefined,
         });
         return response.data;
     },
@@ -23,9 +23,9 @@ export const notificationsApi = {
         return response.data;
     },
 
-    markAllAsSeen: async (outletId: string) => {
+    markAllAsSeen: async () => {
         const response = await api.patch<{ count: number }>('/notifications/seen-all', undefined, {
-            params: { outletId },
+            params: undefined,
         });
         return response.data;
     },

@@ -1,27 +1,13 @@
-import { useState } from 'react';
 import { useNotifications, useMarkNotificationAsSeen, useMarkAllNotificationsAsSeen, useRemoveNotification } from '@/hooks/useNotifications';
-import { useOutlets } from '@/hooks/useOutlets';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bell, Check, CheckCircle2, Trash2, Filter, AlertCircle, RefreshCcw } from 'lucide-react';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { Bell, Check, CheckCircle2, Trash2, AlertCircle, RefreshCcw } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
 export default function NotificationList() {
-    const [selectedOutlet, setSelectedOutlet] = useState<string>('all');
-
-    const { data: outlets } = useOutlets();
-    const { data: notifications, isLoading, isError, refetch } = useNotifications(
-        selectedOutlet === 'all' ? undefined : selectedOutlet
-    );
+    const { data: notifications, isLoading, isError, refetch } = useNotifications();
 
     const markAsSeen = useMarkNotificationAsSeen();
     const markAllAsSeen = useMarkAllNotificationsAsSeen();
@@ -31,18 +17,7 @@ export default function NotificationList() {
     const hasUnread = unreadCount > 0;
 
     const handleMarkAllAsSeen = () => {
-        if (selectedOutlet === 'all') {
-            // It might be tricky to mark all across all outlets sequentially,
-            // but the API endpoint requires an outletId.
-            // If they are on "all", we probably need an outlet selected to do batch mark all as seen
-            // unless the backend supports without. Let's check. 
-            // Wait, the backend API requires `outletId: string` strictly for markAllAsSeen.
-            // So if `selectedOutlet` is 'all', they can't use this button directly for all outlets,
-            // or we disable it and ask them to select an outlet first.
-            // For now, let's just do nothing if 'all' is selected since backend requires an outletId.
-            return;
-        }
-        markAllAsSeen.mutate(selectedOutlet);
+        markAllAsSeen.mutate();
     };
 
     if (isError) {
@@ -74,26 +49,7 @@ export default function NotificationList() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl p-1 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
-                        <div className="pl-3 pr-2">
-                            <Filter className="h-4 w-4 text-slate-400" />
-                        </div>
-                        <Select value={selectedOutlet} onValueChange={setSelectedOutlet}>
-                            <SelectTrigger className="h-10 w-[180px] border-none bg-transparent focus:ring-0 shadow-none font-medium">
-                                <SelectValue placeholder="All Outlets" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl border-none shadow-xl font-medium">
-                                <SelectItem value="all">All Outlets</SelectItem>
-                                {outlets?.map(outlet => (
-                                    <SelectItem key={outlet.id} value={outlet.id}>
-                                        {outlet.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {hasUnread && selectedOutlet !== 'all' && (
+                    {hasUnread && (
                         <Button
                             variant="secondary"
                             onClick={handleMarkAllAsSeen}
@@ -143,7 +99,6 @@ export default function NotificationList() {
                                     <p className="text-2xl font-black text-slate-700 dark:text-slate-300">All Caught Up!</p>
                                     <p className="text-base text-slate-500 dark:text-slate-400 max-w-sm mx-auto font-medium">
                                         There are no notifications for you right now.
-                                        {selectedOutlet !== 'all' && " Adjust your filters to see more."}
                                     </p>
                                 </div>
                             </div>

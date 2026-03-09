@@ -135,7 +135,7 @@ function OutletForm({ initial, onSubmit, isPending, onClose }: OutletFormProps) 
     );
 }
 
-function AlertSettingsForm({ outlet, onSubmit, isPending, onClose }: { outlet: Outlet; onSubmit: (data: { alertsEnabled: boolean; email?: string }) => void; isPending: boolean; onClose: () => void }) {
+function AlertSettingsForm({ outlet, onSubmit, isPending, onClose }: { outlet: Outlet; onSubmit: (data: { alertsEnabled: boolean; alertEmail?: string }) => void; isPending: boolean; onClose: () => void }) {
     const [alertsEnabled, setAlertsEnabled] = useState(outlet.alertsEnabled);
     const [email, setEmail] = useState(outlet.email ?? '');
 
@@ -143,7 +143,7 @@ function AlertSettingsForm({ outlet, onSubmit, isPending, onClose }: { outlet: O
         <form
             onSubmit={(e) => {
                 e.preventDefault();
-                onSubmit({ alertsEnabled, email });
+                onSubmit({ alertsEnabled, alertEmail: email || undefined });
             }}
             className="space-y-6 pt-2"
         >
@@ -212,7 +212,7 @@ export default function OutletList() {
         updateOutlet.mutate({ id: dialogMode.outlet.id, payload }, { onSuccess: () => setDialogMode(null) });
     };
 
-    const handleUpdateAlerts = (payload: { alertsEnabled: boolean; email?: string }) => {
+    const handleUpdateAlerts = (payload: { alertsEnabled: boolean; alertEmail?: string }) => {
         if (dialogMode?.type !== 'alerts') return;
         updateAlerts.mutate({ id: dialogMode.outlet.id, payload }, { onSuccess: () => setDialogMode(null) });
     };
