@@ -2,6 +2,12 @@
 
 Production-ready NestJS backend for managing car spare parts sales outlets with inventory, sales, and intelligent stock alert features.
 
+## Docker Deployment (OVH VPS)
+
+For full Docker deployment instructions on an OVH VPS, read:
+
+- [README.DOCKER-OVH.md](README.DOCKER-OVH.md)
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -340,3 +346,4 @@ Auto Parts POS Team
 ## 🤝 Contributing
 
 This is a production backend system. For modifications or enhancements, contact the development team.
+
