@@ -24,6 +24,8 @@ export class CustomersService {
                     { name: { contains: filters.search, mode: 'insensitive' as const } },
                     { email: { contains: filters.search, mode: 'insensitive' as const } },
                     { phone: { contains: filters.search, mode: 'insensitive' as const } },
+                    { carPlate: { contains: filters.search, mode: 'insensitive' as const } },
+                    { vin: { contains: filters.search, mode: 'insensitive' as const } },
                 ],
             }
             : {};

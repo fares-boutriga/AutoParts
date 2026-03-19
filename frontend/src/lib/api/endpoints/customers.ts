@@ -5,6 +5,8 @@ export interface Customer {
     name: string;
     phone?: string;
     email?: string;
+    carPlate?: string;
+    vin?: string;
     orderCount: number;
     lastOrderAt?: string;
     createdAt: string;
@@ -21,12 +23,16 @@ export interface CreateCustomerPayload {
     name: string;
     phone?: string;
     email?: string;
+    carPlate?: string;
+    vin?: string;
 }
 
 export interface UpdateCustomerPayload {
     name?: string;
     phone?: string;
     email?: string;
+    carPlate?: string;
+    vin?: string;
 }
 
 export const customersApi = {

@@ -643,7 +643,11 @@ export default function POS() {
                                         {customers.map((c) => (
                                             <SelectItem key={c.id} value={c.id} className="rounded-lg">
                                                 {c.name}
-                                                {c.phone && <span className="ml-2 text-[10px] text-slate-400">({c.phone})</span>}
+                                                {(c.carPlate || c.phone) && (
+                                                    <span className="ml-2 text-[10px] text-slate-400">
+                                                        ({c.carPlate || c.phone})
+                                                    </span>
+                                                )}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

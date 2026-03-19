@@ -136,6 +136,43 @@
       }
     }
   },
+  "customers_page": {
+    "title": "CRM Customers",
+    "subtitle": "Manage client profiles, track purchase history, and drive retention.",
+    "addCustomer": "Add Customer",
+    "searchPlaceholder": "Search by name, phone, email, plate or VIN...",
+    "noContact": "No contact info",
+    "dialog": {
+      "newTitle": "New Customer",
+      "editTitle": "Edit Customer",
+      "newDescription": "Add a new client to your CRM database.",
+      "editDescription": "Update the customer profile information."
+    },
+    "form": {
+      "fullNameLabel": "Full Name *",
+      "fullNamePlaceholder": "e.g. Ahmed Brahim",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "+216 XX XXX XXX",
+      "emailLabel": "Email",
+      "emailPlaceholder": "customer@example.com",
+      "carPlateLabel": "Vehicle Plate",
+      "carPlatePlaceholder": "e.g. 127 TN 5698",
+      "vinLabel": "VIN",
+      "vinPlaceholder": "e.g. VF1AB123456789012",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "createCustomer": "Create Customer"
+    },
+    "detail": {
+      "totalOrders": "Total Orders",
+      "totalSpent": "Total Spent",
+      "purchaseHistory": "Purchase History",
+      "noOrders": "No orders yet",
+      "carPlateLabel": "Plate",
+      "vinLabel": "VIN"
+    }
+  },
   "orders_page": {
     "title": "Order Management",
     "subtitle": "Monitor and manage all customer sales and transactions.",

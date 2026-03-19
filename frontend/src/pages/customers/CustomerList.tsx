@@ -61,6 +61,7 @@ import {
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { Customer } from '@/lib/api/endpoints/customers';
+import { useTranslation } from 'react-i18next';
 
 type DialogMode = { type: 'create' } | { type: 'edit'; customer: Customer } | null;
 
@@ -71,51 +72,84 @@ function CustomerForm({
     onClose,
 }: {
     initial?: Partial<Customer>;
-    onSubmit: (data: { name: string; phone: string; email: string }) => void;
+    onSubmit: (data: { name: string; phone: string; email: string; carPlate: string; vin: string }) => void;
     isPending: boolean;
     onClose: () => void;
 }) {
+    const { t } = useTranslation();
     const [name, setName] = useState(initial?.name ?? '');
     const [phone, setPhone] = useState(initial?.phone ?? '');
     const [email, setEmail] = useState(initial?.email ?? '');
+    const [carPlate, setCarPlate] = useState(initial?.carPlate ?? '');
+    const [vin, setVin] = useState(initial?.vin ?? '');
 
     return (
         <form
             onSubmit={(e) => {
                 e.preventDefault();
-                onSubmit({ name, phone, email });
+                onSubmit({ name, phone, email, carPlate, vin });
             }}
             className="space-y-5 pt-2"
         >
             <div className="space-y-2">
-                <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-slate-500">Full Name *</Label>
+                <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-slate-500">
+                    {t('customers_page.form.fullNameLabel')}
+                </Label>
                 <Input
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Ahmed Brahim"
+                    placeholder={t('customers_page.form.fullNamePlaceholder')}
                     required
                     className="h-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none focus-visible:ring-2 focus-visible:ring-primary/30 font-medium"
                 />
             </div>
             <div className="space-y-2">
-                <Label htmlFor="phone" className="text-xs font-black uppercase tracking-widest text-slate-500">Phone</Label>
+                <Label htmlFor="phone" className="text-xs font-black uppercase tracking-widest text-slate-500">
+                    {t('customers_page.form.phoneLabel')}
+                </Label>
                 <Input
                     id="phone"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+216 XX XXX XXX"
+                    placeholder={t('customers_page.form.phonePlaceholder')}
                     className="h-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none focus-visible:ring-2 focus-visible:ring-primary/30 font-medium"
                 />
             </div>
             <div className="space-y-2">
-                <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-slate-500">Email</Label>
+                <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-slate-500">
+                    {t('customers_page.form.emailLabel')}
+                </Label>
                 <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="customer@example.com"
+                    placeholder={t('customers_page.form.emailPlaceholder')}
+                    className="h-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none focus-visible:ring-2 focus-visible:ring-primary/30 font-medium"
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="carPlate" className="text-xs font-black uppercase tracking-widest text-slate-500">
+                    {t('customers_page.form.carPlateLabel')}
+                </Label>
+                <Input
+                    id="carPlate"
+                    value={carPlate}
+                    onChange={(e) => setCarPlate(e.target.value)}
+                    placeholder={t('customers_page.form.carPlatePlaceholder')}
+                    className="h-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none focus-visible:ring-2 focus-visible:ring-primary/30 font-medium"
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="vin" className="text-xs font-black uppercase tracking-widest text-slate-500">
+                    {t('customers_page.form.vinLabel')}
+                </Label>
+                <Input
+                    id="vin"
+                    value={vin}
+                    onChange={(e) => setVin(e.target.value)}
+                    placeholder={t('customers_page.form.vinPlaceholder')}
                     className="h-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none focus-visible:ring-2 focus-visible:ring-primary/30 font-medium"
                 />
             </div>
@@ -126,14 +160,18 @@ function CustomerForm({
                     onClick={onClose}
                     className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 font-bold"
                 >
-                    Cancel
+                    {t('customers_page.form.cancel')}
                 </Button>
                 <Button
                     type="submit"
                     disabled={isPending}
                     className="flex-1 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all"
                 >
-                    {isPending ? 'Saving...' : initial?.id ? 'Save Changes' : 'Create Customer'}
+                    {isPending
+                        ? t('customers_page.form.saving')
+                        : initial?.id
+                            ? t('customers_page.form.saveChanges')
+                            : t('customers_page.form.createCustomer')}
                 </Button>
             </div>
         </form>
@@ -141,6 +179,7 @@ function CustomerForm({
 }
 
 function CustomerDetailSheet({ customerId, onClose }: { customerId: string; onClose: () => void }) {
+    const { t } = useTranslation();
     const { data: customer, isLoading } = useCustomer(customerId);
 
     const totalSpend = customer?.orders?.reduce((sum, o) => sum + Number(o.totalAmount), 0) ?? 0;
@@ -163,6 +202,18 @@ function CustomerDetailSheet({ customerId, onClose }: { customerId: string; onCl
                                 {customer.email}
                             </span>
                         )}
+                        {customer?.carPlate && (
+                            <span className="flex items-center gap-2 text-sm font-medium">
+                                <span className="text-primary font-bold">{t('customers_page.detail.carPlateLabel')}:</span>
+                                {customer.carPlate}
+                            </span>
+                        )}
+                        {customer?.vin && (
+                            <span className="flex items-center gap-2 text-sm font-medium">
+                                <span className="text-primary font-bold">{t('customers_page.detail.vinLabel')}:</span>
+                                {customer.vin}
+                            </span>
+                        )}
                     </SheetDescription>
                 </SheetHeader>
 
@@ -175,22 +226,22 @@ function CustomerDetailSheet({ customerId, onClose }: { customerId: string; onCl
                         {/* Mini Stats */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="rounded-2xl bg-primary/5 border border-primary/10 p-4">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Orders</p>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('customers_page.detail.totalOrders')}</p>
                                 <p className="text-3xl font-black text-primary mt-1">{customer?.orders?.length ?? 0}</p>
                             </div>
                             <div className="rounded-2xl bg-emerald-500/5 border border-emerald-500/10 p-4">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Spent</p>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('customers_page.detail.totalSpent')}</p>
                                 <p className="text-2xl font-black text-emerald-600 mt-1">{totalSpend.toFixed(2)} TND</p>
                             </div>
                         </div>
 
                         {/* Order History */}
                         <div>
-                            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Purchase History</h3>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">{t('customers_page.detail.purchaseHistory')}</h3>
                             {!customer?.orders?.length ? (
                                 <div className="flex flex-col items-center justify-center py-12 rounded-2xl bg-slate-50 dark:bg-slate-900">
                                     <ShoppingBag className="h-10 w-10 text-slate-300 mb-2" />
-                                    <p className="text-sm font-bold text-slate-400">No orders yet</p>
+                                    <p className="text-sm font-bold text-slate-400">{t('customers_page.detail.noOrders')}</p>
                                 </div>
                             ) : (
                                 <div className="space-y-3">
@@ -245,6 +296,7 @@ function CustomerDetailSheet({ customerId, onClose }: { customerId: string; onCl
 }
 
 export default function CustomerList() {
+    const { t } = useTranslation();
     const [search, setSearch] = useState('');
     const [page] = useState(1);
     const [dialogMode, setDialogMode] = useState<DialogMode>(null);
@@ -264,17 +316,32 @@ export default function CustomerList() {
         return last.getMonth() === now.getMonth() && last.getFullYear() === now.getFullYear();
     }).length ?? 0;
 
-    const handleCreate = (d: { name: string; phone: string; email: string }) => {
+    const handleCreate = (d: { name: string; phone: string; email: string; carPlate: string; vin: string }) => {
         createCustomer.mutate(
-            { name: d.name, phone: d.phone || undefined, email: d.email || undefined },
+            {
+                name: d.name,
+                phone: d.phone || undefined,
+                email: d.email || undefined,
+                carPlate: d.carPlate || undefined,
+                vin: d.vin || undefined,
+            },
             { onSuccess: () => setDialogMode(null) }
         );
     };
 
-    const handleEdit = (d: { name: string; phone: string; email: string }) => {
+    const handleEdit = (d: { name: string; phone: string; email: string; carPlate: string; vin: string }) => {
         if (dialogMode?.type !== 'edit') return;
         updateCustomer.mutate(
-            { id: dialogMode.customer.id, payload: { name: d.name, phone: d.phone || undefined, email: d.email || undefined } },
+            {
+                id: dialogMode.customer.id,
+                payload: {
+                    name: d.name,
+                    phone: d.phone || undefined,
+                    email: d.email || undefined,
+                    carPlate: d.carPlate || undefined,
+                    vin: d.vin || undefined,
+                },
+            },
             { onSuccess: () => setDialogMode(null) }
         );
     };
@@ -305,17 +372,17 @@ export default function CustomerList() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div className="space-y-1">
                     <h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-gradient-x">
-                        CRM Customers
+                        {t('customers_page.title')}
                     </h1>
                     <p className="text-slate-500 dark:text-slate-400 font-medium">
-                        Manage client profiles, track purchase history, and drive retention.
+                        {t('customers_page.subtitle')}
                     </p>
                 </div>
                 <Button
                     onClick={() => setDialogMode({ type: 'create' })}
                     className="rounded-xl px-6 bg-gradient-to-r from-primary to-secondary text-white shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all duration-300"
                 >
-                    <Plus className="mr-2 h-5 w-5" /> Add Customer
+                    <Plus className="mr-2 h-5 w-5" /> {t('customers_page.addCustomer')}
                 </Button>
             </div>
 
@@ -353,7 +420,7 @@ export default function CustomerList() {
                         <div className="relative flex-1 group">
                             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-primary transition-colors" />
                             <Input
-                                placeholder="Search by name, phone or email..."
+                                placeholder={t('customers_page.searchPlaceholder')}
                                 className="pl-11 h-12 bg-slate-50/50 dark:bg-slate-800/50 border-none rounded-2xl focus-visible:ring-2 focus-visible:ring-primary/20 font-medium"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
@@ -440,10 +507,22 @@ export default function CustomerList() {
                                         </TableCell>
                                         <TableCell>
                                             <div className="space-y-0.5">
+                                                {customer.carPlate && (
+                                                    <div className="flex items-center gap-1.5 text-sm font-medium text-slate-600 dark:text-slate-400">
+                                                        <span className="text-primary font-bold">{t('customers_page.detail.carPlateLabel')}:</span>
+                                                        {customer.carPlate}
+                                                    </div>
+                                                )}
                                                 {customer.phone && (
                                                     <div className="flex items-center gap-1.5 text-sm font-medium text-slate-600 dark:text-slate-400">
                                                         <Phone className="h-3.5 w-3.5 text-primary" />
                                                         {customer.phone}
+                                                    </div>
+                                                )}
+                                                {customer.vin && (
+                                                    <div className="flex items-center gap-1.5 text-sm font-medium text-slate-600 dark:text-slate-400">
+                                                        <span className="text-primary font-bold">{t('customers_page.detail.vinLabel')}:</span>
+                                                        {customer.vin}
                                                     </div>
                                                 )}
                                                 {customer.email && (
@@ -452,8 +531,10 @@ export default function CustomerList() {
                                                         {customer.email}
                                                     </div>
                                                 )}
-                                                {!customer.phone && !customer.email && (
-                                                    <span className="text-slate-300 dark:text-slate-600 text-sm italic">No contact info</span>
+                                                {!customer.phone && !customer.email && !customer.carPlate && !customer.vin && (
+                                                    <span className="text-slate-300 dark:text-slate-600 text-sm italic">
+                                                        {t('customers_page.noContact')}
+                                                    </span>
                                                 )}
                                             </div>
                                         </TableCell>
@@ -538,12 +619,14 @@ export default function CustomerList() {
                 <DialogContent className="rounded-3xl border-none shadow-2xl bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black">
-                            {dialogMode?.type === 'edit' ? 'Edit Customer' : 'New Customer'}
+                            {dialogMode?.type === 'edit'
+                                ? t('customers_page.dialog.editTitle')
+                                : t('customers_page.dialog.newTitle')}
                         </DialogTitle>
                         <DialogDescription className="text-slate-500">
                             {dialogMode?.type === 'edit'
-                                ? 'Update the customer profile information.'
-                                : 'Add a new client to your CRM database.'}
+                                ? t('customers_page.dialog.editDescription')
+                                : t('customers_page.dialog.newDescription')}
                         </DialogDescription>
                     </DialogHeader>
                     {dialogMode?.type === 'create' && (

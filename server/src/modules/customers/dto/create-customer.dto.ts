@@ -15,4 +15,14 @@ export class CreateCustomerDto {
     @IsOptional()
     @IsEmail()
     email?: string;
+
+    @ApiProperty({ required: false, description: 'Vehicle plate number' })
+    @IsOptional()
+    @IsString()
+    carPlate?: string;
+
+    @ApiProperty({ required: false, description: 'Vehicle VIN number' })
+    @IsOptional()
+    @IsString()
+    vin?: string;
 }

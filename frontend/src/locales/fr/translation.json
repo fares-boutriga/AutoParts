@@ -136,6 +136,43 @@
             }
         }
     },
+    "customers_page": {
+        "title": "Clients CRM",
+        "subtitle": "Gerez les profils clients, suivez l'historique des achats et fidelisez.",
+        "addCustomer": "Ajouter un client",
+        "searchPlaceholder": "Rechercher par nom, telephone, email, matricule ou VIN...",
+        "noContact": "Aucune info de contact",
+        "dialog": {
+            "newTitle": "Nouveau client",
+            "editTitle": "Modifier le client",
+            "newDescription": "Ajoutez un nouveau client dans votre CRM.",
+            "editDescription": "Mettez a jour les informations du client."
+        },
+        "form": {
+            "fullNameLabel": "Nom complet *",
+            "fullNamePlaceholder": "ex: Ahmed Brahim",
+            "phoneLabel": "Telephone",
+            "phonePlaceholder": "+216 XX XXX XXX",
+            "emailLabel": "Email",
+            "emailPlaceholder": "client@exemple.com",
+            "carPlateLabel": "Matricule voiture",
+            "carPlatePlaceholder": "ex: 127 TN 5698",
+            "vinLabel": "VIN",
+            "vinPlaceholder": "ex: VF1AB123456789012",
+            "cancel": "Annuler",
+            "saving": "Enregistrement...",
+            "saveChanges": "Enregistrer les modifications",
+            "createCustomer": "Creer le client"
+        },
+        "detail": {
+            "totalOrders": "Total commandes",
+            "totalSpent": "Total depense",
+            "purchaseHistory": "Historique des achats",
+            "noOrders": "Aucune commande pour le moment",
+            "carPlateLabel": "Matricule",
+            "vinLabel": "VIN"
+        }
+    },
     "orders_page": {
         "title": "Gestion des Commandes",
         "subtitle": "Surveillez et gérez toutes les ventes et transactions des clients.",
