@@ -2,6 +2,7 @@ import {
     Injectable,
     NotFoundException,
     BadRequestException,
+    ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { StockAlertsService } from '../stock-alerts/stock-alerts.service';
@@ -128,25 +129,66 @@ export class OrdersService {
     }
 
     private async resolveOutletId(cashierId: string, requestedOutletId?: string): Promise<string> {
-        if (requestedOutletId) return requestedOutletId;
-
-        const assignedOutlet = await this.prisma.userOutlet.findFirst({
-            where: { userId: cashierId },
-            select: { outletId: true },
+        const user = await this.prisma.user.findUnique({
+            where: { id: cashierId },
+            select: {
+                roles: {
+                    select: {
+                        role: {
+                            select: { name: true },
+                        },
+                    },
+                },
+                outlets: {
+                    select: { outletId: true },
+                },
+            },
         });
-        if (assignedOutlet?.outletId) {
-            return assignedOutlet.outletId;
+
+        if (!user) {
+            throw new BadRequestException('Cashier not found');
         }
 
-        const defaultOutlet = await this.prisma.outlet.findFirst({
-            select: { id: true },
-            orderBy: { createdAt: 'asc' },
-        });
-        if (defaultOutlet?.id) {
-            return defaultOutlet.id;
+        const assignedOutletIds = new Set(user.outlets.map((outlet) => outlet.outletId));
+        const isAdmin = user.roles.some((userRole) =>
+            (userRole.role?.name ?? '').toLowerCase().includes('admin'),
+        );
+
+        if (requestedOutletId) {
+            if (!isAdmin && !assignedOutletIds.has(requestedOutletId)) {
+                throw new ForbiddenException('You are not allowed to create orders for this outlet');
+            }
+
+            const outlet = await this.prisma.outlet.findUnique({
+                where: { id: requestedOutletId },
+                select: { id: true },
+            });
+
+            if (!outlet) {
+                throw new BadRequestException('Requested outlet does not exist');
+            }
+
+            return outlet.id;
         }
 
-        throw new BadRequestException('No outlet is configured in the system');
+        const firstAssignedOutlet = user.outlets[0]?.outletId;
+        if (firstAssignedOutlet) {
+            return firstAssignedOutlet;
+        }
+
+        if (isAdmin) {
+            const defaultOutlet = await this.prisma.outlet.findFirst({
+                select: { id: true },
+                orderBy: { createdAt: 'asc' },
+            });
+            if (defaultOutlet?.id) {
+                return defaultOutlet.id;
+            }
+
+            throw new BadRequestException('No outlet is configured in the system');
+        }
+
+        throw new ForbiddenException('No outlet is assigned to the current user');
     }
 
     async findAll(filters?: {

@@ -52,6 +52,22 @@ export const useUpdateProduct = () => {
     });
 };
 
+export const useToggleVisibility = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id: string) => productsApi.toggleVisibility(id),
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+            toast.success(data.isActive ? 'Product is now visible' : 'Product is now hidden');
+        },
+        onError: (error: any) => {
+            const message = error.response?.data?.message || 'Failed to update visibility';
+            toast.error(message);
+        },
+    });
+};
+
 export const useDeleteProduct = () => {
     const queryClient = useQueryClient();
 

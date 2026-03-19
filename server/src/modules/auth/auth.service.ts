@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import * as bcrypt from 'bcrypt';
+import { createHash } from 'crypto';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateMeDto } from './dto/update-me.dto';
@@ -210,16 +211,23 @@ export class AuthService {
 
     async refreshToken(refreshToken: string) {
         try {
+            const refreshSecret = this.getRequiredConfig('JWT_REFRESH_SECRET');
             const payload = this.jwtService.verify(refreshToken, {
-                secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+                secret: refreshSecret,
             });
 
+            const tokenHash = this.hashToken(refreshToken);
             const storedToken = await this.prisma.refreshToken.findUnique({
-                where: { token: refreshToken },
+                where: { token: tokenHash },
                 include: { user: true },
             });
 
             if (!storedToken) {
+                throw new UnauthorizedException('Invalid refresh token');
+            }
+
+            if (storedToken.user.id !== payload.sub) {
+                await this.prisma.refreshToken.delete({ where: { id: storedToken.id } });
                 throw new UnauthorizedException('Invalid refresh token');
             }
 
@@ -240,7 +248,8 @@ export class AuthService {
 
     async logout(refreshToken: string) {
         try {
-            await this.prisma.refreshToken.delete({ where: { token: refreshToken } });
+            const tokenHash = this.hashToken(refreshToken);
+            await this.prisma.refreshToken.delete({ where: { token: tokenHash } });
             return { message: 'Logged out successfully' };
         } catch {
             throw new BadRequestException('Invalid refresh token');
@@ -249,14 +258,16 @@ export class AuthService {
 
     private async generateTokens(userId: string, email: string) {
         const payload = { sub: userId, email };
+        const accessSecret = this.getRequiredConfig('JWT_ACCESS_SECRET');
+        const refreshSecret = this.getRequiredConfig('JWT_REFRESH_SECRET');
 
         const [accessToken, refreshToken] = await Promise.all([
             this.jwtService.signAsync(payload, {
-                secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
+                secret: accessSecret,
                 expiresIn: (this.configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m') as any,
             }),
             this.jwtService.signAsync(payload, {
-                secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+                secret: refreshSecret,
                 expiresIn: (this.configService.get<string>('JWT_REFRESH_EXPIRATION') || '7d') as any,
             }),
         ]);
@@ -267,6 +278,7 @@ export class AuthService {
     private async saveRefreshToken(userId: string, token: string) {
         const expiresIn = this.configService.get<string>('JWT_REFRESH_EXPIRATION') || '7d';
         const expiresAt = new Date();
+        const tokenHash = this.hashToken(token);
 
         const match = expiresIn.match(/^(\d+)([dhm])$/);
         if (match) {
@@ -279,7 +291,19 @@ export class AuthService {
             }
         }
 
-        await this.prisma.refreshToken.create({ data: { token, userId, expiresAt } });
+        await this.prisma.refreshToken.create({ data: { token: tokenHash, userId, expiresAt } });
+    }
+
+    private hashToken(token: string): string {
+        return createHash('sha256').update(token).digest('hex');
+    }
+
+    private getRequiredConfig(key: string): string {
+        const value = this.configService.get<string>(key);
+        if (!value) {
+            throw new Error(`${key} is not configured`);
+        }
+        return value;
     }
 
     private async getAdminNotificationRecipients(excludeUserId: string): Promise<string[]> {

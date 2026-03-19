@@ -20,6 +20,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 @ApiTags('Products')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, PermissionsGuard)
+@RequirePermissions('sell_products')
 @Controller('products')
 export class ProductsController {
     constructor(private readonly productsService: ProductsService) { }
@@ -38,18 +39,27 @@ export class ProductsController {
     @ApiQuery({ name: 'search', required: false })
     @ApiQuery({ name: 'page', required: false })
     @ApiQuery({ name: 'limit', required: false })
+    @ApiQuery({ name: 'activeOnly', required: false, type: Boolean, description: 'If true, only return active (non-deleted, visible) products — for POS' })
     findAll(
         @Query('categoryId') categoryId?: string,
         @Query('search') search?: string,
         @Query('page') page?: string,
         @Query('limit') limit?: string,
+        @Query('activeOnly') activeOnly?: string,
     ) {
         return this.productsService.findAll({
             categoryId,
             search,
             page: page ? parseInt(page, 10) : undefined,
             limit: limit ? parseInt(limit, 10) : undefined,
+            activeOnly: activeOnly === 'true',
         });
+    }
+
+    @Get('by-barcode/:barcode')
+    @ApiOperation({ summary: 'Get active product by barcode' })
+    findByBarcode(@Param('barcode') barcode: string) {
+        return this.productsService.findByBarcode(barcode);
     }
 
     @Get('by-reference/:reference')
@@ -62,6 +72,13 @@ export class ProductsController {
     @ApiOperation({ summary: 'Get product by ID' })
     findOne(@Param('id') id: string) {
         return this.productsService.findOne(id);
+    }
+
+    @Patch(':id/toggle-visibility')
+    @RequirePermissions('manage_products')
+    @ApiOperation({ summary: 'Toggle product visibility (isActive)' })
+    toggleVisibility(@Param('id') id: string) {
+        return this.productsService.toggleVisibility(id);
     }
 
     @Patch(':id')
@@ -77,7 +94,7 @@ export class ProductsController {
 
     @Delete(':id')
     @RequirePermissions('manage_products')
-    @ApiOperation({ summary: 'Delete product' })
+    @ApiOperation({ summary: 'Soft-delete product (sets isDeleted=true)' })
     remove(@Param('id') id: string) {
         return this.productsService.remove(id);
     }

@@ -11,6 +11,11 @@ export class CreateProductDto {
     @IsString()
     reference?: string;
 
+    @ApiProperty({ required: false, description: 'Barcode for barcode scanner' })
+    @IsOptional()
+    @IsString()
+    barcode?: string;
+
     @ApiProperty({ required: false })
     @IsOptional()
     @IsString()

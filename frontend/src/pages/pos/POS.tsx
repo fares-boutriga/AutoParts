@@ -97,7 +97,7 @@ export default function POS() {
     const lastScannedCodeRef = useRef('');
 
     const { user } = useAuthStore();
-    const { data: productsData, isLoading: isLoadingProducts } = useProducts({ search, limit: 50 });
+    const { data: productsData, isLoading: isLoadingProducts } = useProducts({ search, limit: 50, activeOnly: true });
     const { data: customersData } = useCustomers({ limit: 100 });
     const { data: outletsData } = useOutlets();
     const { mutate: createOrder } = useCreateOrder();
@@ -231,7 +231,19 @@ export default function POS() {
 
         isProcessingCodeRef.current = true;
         try {
-            const product = await productsApi.getByReference(code);
+            let product;
+            try {
+                // 1. Try barcode specific endpoint first
+                product = await productsApi.getByBarcode(code);
+            } catch (barcodeErr: any) {
+                if (barcodeErr?.response?.status === 404) {
+                    // 2. Fallback to reference/SKU if barcode not found
+                    product = await productsApi.getByReference(code);
+                } else {
+                    throw barcodeErr;
+                }
+            }
+
             const addResult = addToCart(product, { showToast: false });
             if (!addResult.ok) {
                 openScanError('out_of_stock');
@@ -372,6 +384,41 @@ export default function POS() {
             stopScanner();
         };
     }, []);
+
+    useEffect(() => {
+        let barcodeBuffer = '';
+        let lastKeyTime = Date.now();
+
+        const handleGlobalKeyDown = (e: KeyboardEvent) => {
+            // Do not intercept if user is typing in an input or textarea
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                return;
+            }
+
+            const currentTime = Date.now();
+            
+            // Barcode scanners type very fast. If delay > 100ms, consider it manual typing and reset.
+            if (currentTime - lastKeyTime > 100) {
+                barcodeBuffer = '';
+            }
+
+            if (e.key === 'Enter' && barcodeBuffer.length > 0) {
+                e.preventDefault();
+                const codeToSearch = barcodeBuffer.trim();
+                barcodeBuffer = '';
+                if (codeToSearch) {
+                    resolveAndAddByBarcode(codeToSearch).catch(console.error);
+                }
+            } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                barcodeBuffer += e.key;
+            }
+
+            lastKeyTime = currentTime;
+        };
+
+        window.addEventListener('keydown', handleGlobalKeyDown);
+        return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <div className="flex flex-col lg:flex-row lg:h-[calc(100vh-120px)] gap-4 lg:gap-6 overflow-x-hidden lg:overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">

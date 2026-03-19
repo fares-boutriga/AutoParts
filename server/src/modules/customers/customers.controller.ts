@@ -20,6 +20,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 @ApiTags('Customers')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, PermissionsGuard)
+@RequirePermissions('manage_customers')
 @Controller('customers')
 export class CustomersController {
     constructor(private readonly customersService: CustomersService) { }

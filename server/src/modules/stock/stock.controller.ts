@@ -21,6 +21,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 @ApiTags('Stock')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, PermissionsGuard)
+@RequirePermissions('manage_stock')
 @Controller('stock')
 export class StockController {
     constructor(private stockService: StockService) { }

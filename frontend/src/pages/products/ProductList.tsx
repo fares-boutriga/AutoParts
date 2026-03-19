@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useProducts, useDeleteProduct } from '@/hooks/useProducts';
+import { useProducts, useDeleteProduct, useToggleVisibility } from '@/hooks/useProducts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -28,7 +28,9 @@ import {
     Trash2,
     Package,
     AlertTriangle,
-    CheckCircle2
+    CheckCircle2,
+    Eye,
+    EyeOff,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -40,11 +42,16 @@ export default function ProductList() {
     const [page] = useState(1);
     const { data, isLoading, isError } = useProducts({ page, search, limit: 10 });
     const deleteProduct = useDeleteProduct();
+    const toggleVisibility = useToggleVisibility();
 
     const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this product?')) {
+        if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
             await deleteProduct.mutateAsync(id);
         }
+    };
+
+    const handleToggleVisibility = async (id: string) => {
+        await toggleVisibility.mutateAsync(id);
     };
 
     if (isError) {
@@ -54,7 +61,7 @@ export default function ProductList() {
                     <CardContent className="p-6 text-center space-y-4">
                         <AlertTriangle className="h-12 w-12 text-destructive mx-auto animate-bounce" />
                         <h2 className="text-xl font-bold">Error Loading Products</h2>
-                        <p className="text-muted-foreground">Detailed trace: We couldn't fetch the products from the server. Please check your connection and try again.</p>
+                        <p className="text-muted-foreground">We couldn't fetch the products from the server. Please check your connection and try again.</p>
                         <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
                     </CardContent>
                 </Card>
@@ -63,7 +70,7 @@ export default function ProductList() {
     }
 
     const totalProducts = data?.meta?.total || 0;
-    const lowStockCount = data?.data?.filter(p => (p.minStockLevel || 0) > 0).length || 0; // Simplified for demo
+    const lowStockCount = data?.data?.filter(p => (p.totalQuantity || 0) <= (p.minStockLevel || 0)).length || 0;
     const activeProducts = data?.data?.filter(p => p.isActive).length || 0;
 
     return (
@@ -182,9 +189,16 @@ export default function ProductList() {
                                         className="group hover:bg-slate-50/80 dark:hover:bg-slate-800/80 border-slate-100/50 dark:border-slate-800/50 transition-colors"
                                     >
                                         <TableCell className="pl-8">
-                                            <span className="font-mono text-sm bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-primary font-bold">
-                                                {product.reference || 'REF-N/A'}
-                                            </span>
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="font-mono text-sm bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-primary font-bold">
+                                                    {product.reference || 'REF-N/A'}
+                                                </span>
+                                                {product.barcode && (
+                                                    <span className="font-mono text-[10px] text-slate-400 px-2">
+                                                        🔲 {product.barcode}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-4">
@@ -219,16 +233,16 @@ export default function ProductList() {
                                                     <span>Min: {product.minStockLevel || 0}</span>
                                                 </div>
                                                 <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
-                                                    {/* Using minStockLevel as dummy current stock since we don't have stock data yet */}
                                                     <div
                                                         className={cn(
                                                             "h-full rounded-full transition-all duration-1000",
-                                                            (product.minStockLevel > 20) ? "bg-emerald-500" :
-                                                                (product.minStockLevel > 5) ? "bg-amber-500" : "bg-rose-500"
+                                                            (product.totalQuantity > (product.minStockLevel * 2)) ? "bg-emerald-500" :
+                                                                (product.totalQuantity > product.minStockLevel) ? "bg-amber-500" : "bg-rose-500"
                                                         )}
-                                                        style={{ width: `${Math.min((product.minStockLevel / 50) * 100, 100)}%` }}
+                                                        style={{ width: `${Math.min((product.totalQuantity / Math.max((product.minStockLevel * 4), 1)) * 100, 100)}%` }}
                                                     />
                                                 </div>
+                                                <p className="text-[10px] font-bold text-slate-400">{product.totalQuantity} in stock</p>
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-center">
@@ -241,12 +255,12 @@ export default function ProductList() {
                                                 {product.isActive ? (
                                                     <div className="flex items-center gap-1.5">
                                                         <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                        Active
+                                                        {t('product_form.stockControl.active')}
                                                     </div>
                                                 ) : (
                                                     <div className="flex items-center gap-1.5">
                                                         <div className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                                                        Inactive
+                                                        {t('product_form.stockControl.hidden')}
                                                     </div>
                                                 )}
                                             </Badge>
@@ -258,7 +272,7 @@ export default function ProductList() {
                                                         <MoreHorizontal className="h-5 w-5 text-slate-400" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="rounded-2xl w-48 border-none shadow-2xl p-1 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl">
+                                                <DropdownMenuContent align="end" className="rounded-2xl w-52 border-none shadow-2xl p-1 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl">
                                                     <DropdownMenuLabel className="px-4 py-2 font-black uppercase text-[10px] tracking-widest text-slate-400">Actions</DropdownMenuLabel>
                                                     <DropdownMenuItem asChild className="rounded-xl px-4 py-3 focus:bg-primary/5 cursor-pointer">
                                                         <Link to={`/products/${product.id}/edit`} className="flex items-center">
@@ -267,6 +281,15 @@ export default function ProductList() {
                                                             </div>
                                                             <span className="font-bold">Edit Details</span>
                                                         </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        className="rounded-xl px-4 py-3 focus:bg-amber-500/10 text-amber-600 focus:text-amber-700 cursor-pointer font-bold"
+                                                        onClick={() => handleToggleVisibility(product.id)}
+                                                    >
+                                                        <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center mr-3">
+                                                            {product.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                        </div>
+                                                        {product.isActive ? 'Hide Product' : 'Show Product'}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator className="bg-slate-100 dark:border-slate-800 my-1 mx-2" />
                                                     <DropdownMenuItem
@@ -289,7 +312,7 @@ export default function ProductList() {
                 </CardContent>
             </Card>
 
-            {/* Pagination Placeholder */}
+            {/* Pagination */}
             {(data?.meta?.totalPages || 0) > 1 && (
                 <div className="flex items-center justify-center gap-2 py-4">
                     <Button variant="outline" className="rounded-xl border-none shadow-md" disabled={page === 1}>Previous</Button>

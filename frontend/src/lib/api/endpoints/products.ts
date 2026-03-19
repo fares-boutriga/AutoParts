@@ -4,6 +4,7 @@ export interface Product {
     id: string;
     name: string;
     reference?: string;
+    barcode?: string;
     description?: string;
     purchasePrice: number;
     sellingPrice: number;
@@ -15,6 +16,7 @@ export interface Product {
     };
     supplier?: string;
     isActive: boolean;
+    isDeleted: boolean;
     totalQuantity: number;
     createdAt: string;
     updatedAt: string;
@@ -23,6 +25,7 @@ export interface Product {
 export interface CreateProductDto {
     name: string;
     reference?: string;
+    barcode?: string;
     categoryId?: string;
     supplier?: string;
     purchasePrice: number;
@@ -39,6 +42,7 @@ export interface ProductQuery {
     categoryId?: string;
     minPrice?: number;
     maxPrice?: number;
+    activeOnly?: boolean;
 }
 
 const productsApi = {
@@ -57,6 +61,11 @@ const productsApi = {
         return response.data;
     },
 
+    getByBarcode: async (barcode: string) => {
+        const response = await api.get<Product>(`/products/by-barcode/${encodeURIComponent(barcode)}`);
+        return response.data;
+    },
+
     create: async (data: CreateProductDto) => {
         const response = await api.post<Product>('/products', data);
         return response.data;
@@ -64,6 +73,11 @@ const productsApi = {
 
     update: async (id: string, data: Partial<CreateProductDto>) => {
         const response = await api.patch<Product>(`/products/${id}`, data);
+        return response.data;
+    },
+
+    toggleVisibility: async (id: string) => {
+        const response = await api.patch<Product>(`/products/${id}/toggle-visibility`);
         return response.data;
     },
 

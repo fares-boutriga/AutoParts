@@ -26,7 +26,8 @@ import {
     Truck,
     ArrowLeft,
     CheckCircle2,
-    Info
+    Info,
+    ScanLine
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { type CreateProductDto } from '@/lib/api/endpoints/products';
@@ -37,6 +38,7 @@ import { cn } from '@/lib/utils';
 const productSchema = z.object({
     name: z.string().min(2, 'product_form.validation.nameShort'),
     reference: z.string().optional(),
+    barcode: z.string().optional(),
     sellingPrice: z.coerce.number().min(0, 'product_form.validation.positivePrice'),
     purchasePrice: z.coerce.number().min(0, 'product_form.validation.positivePrice'),
     minStockLevel: z.coerce.number().min(0, 'product_form.validation.positiveStock'),
@@ -76,6 +78,7 @@ export default function ProductForm() {
             initialQuantity: 0,
             isActive: true,
             reference: '',
+            barcode: '',
             categoryId: 'none',
             supplier: '',
         } as any,
@@ -85,6 +88,7 @@ export default function ProductForm() {
         if (product) {
             setValue('name', product.name);
             setValue('reference', product.reference || '');
+            setValue('barcode', (product as any).barcode || '');
             setValue('sellingPrice', product.sellingPrice);
             setValue('purchasePrice', product.purchasePrice);
             setValue('minStockLevel', product.minStockLevel);
@@ -192,6 +196,20 @@ export default function ProductForm() {
                                             />
                                         </div>
                                     </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="barcode" className="text-xs font-black uppercase tracking-widest text-slate-500">{t('product_form.generalIdentity.barcodeLabel')}</Label>
+                                    <div className="relative">
+                                        <ScanLine className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                        <Input
+                                            id="barcode"
+                                            {...register('barcode')}
+                                            placeholder={t('product_form.generalIdentity.barcodePlaceholder')}
+                                            className="pl-10 h-12 rounded-xl border-slate-200 focus:ring-primary font-mono"
+                                        />
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 font-medium">{t('product_form.generalIdentity.barcodeDesc')}</p>
                                 </div>
 
                                 <div className="space-y-2">

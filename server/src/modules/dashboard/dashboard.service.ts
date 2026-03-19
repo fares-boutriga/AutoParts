@@ -5,6 +5,11 @@ import type { DashboardSummaryResponse } from './dashboard.types';
 
 type AuthenticatedUser = {
     id: string;
+    roles?: Array<{
+        role?: {
+            name: string;
+        };
+    }>;
     outlets?: Array<{
         outletId?: string;
         outlet?: {
@@ -22,15 +27,26 @@ export class DashboardService {
         query: DashboardQueryDto,
     ): Promise<DashboardSummaryResponse> {
         const period: DashboardPeriod = query.period ?? 'today';
-        const allowedOutletIds = this.getAllowedOutletIds(user);
+        let allowedOutletIds = this.getAllowedOutletIds(user);
+        const isAdmin = user.roles?.some(r => r.role?.name === 'Admin');
 
         if (allowedOutletIds.length === 0) {
-            throw new ForbiddenException('User has no assigned outlets');
+            if (isAdmin) {
+                // If admin has no assigned outlets, allow them to view data for the first available outlet
+                const firstOutlet = await this.prisma.outlet.findFirst();
+                if (firstOutlet) {
+                    allowedOutletIds = [firstOutlet.id];
+                } else {
+                    throw new ForbiddenException('No outlets exist in the system');
+                }
+            } else {
+                throw new ForbiddenException('User has no assigned outlets');
+            }
         }
 
         const outletId = query.outletId ?? allowedOutletIds[0];
 
-        if (!allowedOutletIds.includes(outletId)) {
+        if (!allowedOutletIds.includes(outletId) && !isAdmin) {
             throw new ForbiddenException('Access denied for this outlet');
         }
 

@@ -19,6 +19,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 @ApiTags('Categories')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, PermissionsGuard)
+@RequirePermissions('manage_products')
 @Controller('categories')
 export class CategoriesController {
     constructor(private readonly categoriesService: CategoriesService) { }

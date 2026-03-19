@@ -19,6 +19,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 @ApiTags('Orders')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, PermissionsGuard)
+@RequirePermissions('sell_products')
 @Controller('orders')
 export class OrdersController {
     constructor(private ordersService: OrdersService) { }

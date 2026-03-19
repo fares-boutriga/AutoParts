@@ -20,6 +20,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 @ApiTags('Outlets')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, PermissionsGuard)
+@RequirePermissions('manage_outlets')
 @Controller('outlets')
 export class OutletsController {
     constructor(private outletsService: OutletsService) { }

@@ -12,6 +12,8 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AssignOutletsDto } from './dto/assign-outlets.dto';
+import { AssignRolesDto } from './dto/assign-roles.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
@@ -19,6 +21,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 @ApiTags('Users')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, PermissionsGuard)
+@RequirePermissions('manage_users')
 @Controller('users')
 export class UsersController {
     constructor(private usersService: UsersService) { }
@@ -53,15 +56,15 @@ export class UsersController {
     @Post(':id/outlets')
     @RequirePermissions('manage_users')
     @ApiOperation({ summary: 'Assign outlets to user' })
-    assignOutlets(@Param('id') id: string, @Body('outletIds') outletIds: string[]) {
-        return this.usersService.assignOutlets(id, outletIds);
+    assignOutlets(@Param('id') id: string, @Body() assignOutletsDto: AssignOutletsDto) {
+        return this.usersService.assignOutlets(id, assignOutletsDto.outletIds);
     }
 
     @Post(':id/roles')
     @RequirePermissions('manage_users')
     @ApiOperation({ summary: 'Assign roles to user' })
-    assignRoles(@Param('id') id: string, @Body('roleIds') roleIds: string[]) {
-        return this.usersService.assignRoles(id, roleIds);
+    assignRoles(@Param('id') id: string, @Body() assignRolesDto: AssignRolesDto) {
+        return this.usersService.assignRoles(id, assignRolesDto.roleIds);
     }
 
     @Delete(':id')
