@@ -18,6 +18,7 @@ model User {
   updatedAt     DateTime       @updatedAt
   orders        Order[]
   refreshTokens RefreshToken[]
+  telegramConnectionTokens TelegramConnectionToken[]
   outlets       UserOutlet[]
   roles         UserRole[]
 
@@ -86,11 +87,17 @@ model Outlet {
   phone         String?
   email         String?
   alertsEnabled Boolean        @default(true)
+  telegramAlertsEnabled Boolean @default(false)
+  telegramChatId String?
+  telegramChatType String?
+  telegramChatTitle String?
+  telegramConnectedAt DateTime?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   notifications Notification[]
   orders        Order[]
   stocks        Stock[]
+  telegramConnectionTokens TelegramConnectionToken[]
   users         UserOutlet[]
 
   @@map("outlets")
@@ -104,6 +111,23 @@ model UserOutlet {
 
   @@id([userId, outletId])
   @@map("user_outlets")
+}
+
+model TelegramConnectionToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  outletId  String
+  userId    String
+  targetType String
+  expiresAt DateTime
+  consumedAt DateTime?
+  createdAt DateTime @default(now())
+  outlet    Outlet   @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([outletId, expiresAt])
+  @@index([expiresAt, consumedAt])
+  @@map("telegram_connection_tokens")
 }
 
 model Category {

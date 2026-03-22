@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOutletDto } from './dto/create-outlet.dto';
 import { UpdateOutletDto } from './dto/update-outlet.dto';
+import { UpdateOutletAlertsDto } from './dto/update-outlet-alerts.dto';
 
 @Injectable()
 export class OutletsService {
@@ -85,14 +86,29 @@ export class OutletsService {
         }
     }
 
-    async updateAlertSettings(id: string, updateAlertsDto: { alertsEnabled: boolean; alertEmail?: string }) {
+    async updateAlertSettings(id: string, updateAlertsDto: UpdateOutletAlertsDto) {
         try {
+            const updateData: any = {
+                alertsEnabled: updateAlertsDto.alertsEnabled,
+                email: updateAlertsDto.alertEmail,
+            };
+
+            if (updateAlertsDto.telegramAlertsEnabled !== undefined) {
+                updateData.telegramAlertsEnabled = updateAlertsDto.telegramAlertsEnabled;
+            }
+            if (updateAlertsDto.telegramChatId !== undefined) {
+                const chatId = updateAlertsDto.telegramChatId || null;
+                updateData.telegramChatId = chatId;
+                if (!chatId) {
+                    updateData.telegramChatType = null;
+                    updateData.telegramChatTitle = null;
+                    updateData.telegramConnectedAt = null;
+                }
+            }
+
             return await this.prisma.outlet.update({
                 where: { id },
-                data: {
-                    alertsEnabled: updateAlertsDto.alertsEnabled,
-                    email: updateAlertsDto.alertEmail,
-                },
+                data: updateData,
             });
         } catch (error) {
             throw new NotFoundException('Outlet not found');

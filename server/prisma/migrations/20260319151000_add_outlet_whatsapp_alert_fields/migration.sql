@@ -1,0 +1,3 @@
+ALTER TABLE "outlets"
+ADD COLUMN IF NOT EXISTS "whatsappAlertsEnabled" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN IF NOT EXISTS "whatsappNumber" TEXT;

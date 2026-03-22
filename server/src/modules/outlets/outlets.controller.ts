@@ -13,9 +13,12 @@ import { OutletsService } from './outlets.service';
 import { CreateOutletDto } from './dto/create-outlet.dto';
 import { UpdateOutletDto } from './dto/update-outlet.dto';
 import { UpdateOutletAlertsDto } from './dto/update-outlet-alerts.dto';
+import { InitTelegramConnectDto } from './dto/init-telegram-connect.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { TelegramService } from '../telegram/telegram.service';
 
 @ApiTags('Outlets')
 @ApiBearerAuth()
@@ -23,7 +26,10 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 @RequirePermissions('manage_outlets')
 @Controller('outlets')
 export class OutletsController {
-    constructor(private outletsService: OutletsService) { }
+    constructor(
+        private outletsService: OutletsService,
+        private telegramService: TelegramService,
+    ) { }
 
     @Post()
     @RequirePermissions('manage_outlets')
@@ -57,7 +63,7 @@ export class OutletsController {
     @RequirePermissions('manage_outlets')
     @ApiOperation({
         summary: 'Update outlet stock alert settings',
-        description: 'Configure stock alert notifications for an outlet. When alerts are enabled, an email address must be provided. Stock alerts will be sent when inventory falls below minimum levels.'
+        description: 'Configure stock alert notifications for an outlet. When alerts are enabled, an email address must be provided. Telegram delivery requires an existing Telegram connection.'
     })
     @ApiParam({
         name: 'id',
@@ -76,6 +82,11 @@ export class OutletsController {
                 phone: '+1234567890',
                 email: 'admin@outlet.com',
                 alertsEnabled: true,
+                telegramAlertsEnabled: true,
+                telegramChatId: '-1001234567890',
+                telegramChatType: 'supergroup',
+                telegramChatTitle: 'Magasin Principal',
+                telegramConnectedAt: '2026-03-22T10:00:00.000Z',
                 createdAt: '2024-01-01T00:00:00.000Z',
                 updatedAt: '2024-01-01T00:00:00.000Z'
             }
@@ -92,6 +103,35 @@ export class OutletsController {
     @ApiBody({ type: UpdateOutletAlertsDto })
     updateAlerts(@Param('id') id: string, @Body() updateAlertsDto: UpdateOutletAlertsDto) {
         return this.outletsService.updateAlertSettings(id, updateAlertsDto);
+    }
+
+    @Post(':id/telegram/connect/init')
+    @RequirePermissions('manage_outlets')
+    @ApiOperation({
+        summary: 'Initialize Telegram connection for an outlet',
+        description: 'Generates a one-time Telegram deep link for private or group connection.',
+    })
+    @ApiBody({ type: InitTelegramConnectDto })
+    initTelegramConnect(
+        @Param('id') id: string,
+        @CurrentUser() user: any,
+        @Body() dto: InitTelegramConnectDto,
+    ) {
+        return this.telegramService.initConnection(id, user.id, dto.targetType);
+    }
+
+    @Get(':id/telegram/connect/status')
+    @RequirePermissions('manage_outlets')
+    @ApiOperation({ summary: 'Get Telegram connection status for an outlet' })
+    getTelegramConnectStatus(@Param('id') id: string) {
+        return this.telegramService.getConnectionStatus(id);
+    }
+
+    @Delete(':id/telegram/connect')
+    @RequirePermissions('manage_outlets')
+    @ApiOperation({ summary: 'Disconnect Telegram chat from an outlet' })
+    disconnectTelegram(@Param('id') id: string) {
+        return this.telegramService.disconnectOutlet(id);
     }
 
     @Delete(':id')

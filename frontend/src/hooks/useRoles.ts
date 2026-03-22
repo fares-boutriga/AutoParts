@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import rolesApi from '@/lib/api/endpoints/roles';
-import type { CreateRolePayload } from '@/lib/api/endpoints/roles';
 import { toast } from 'react-hot-toast';
 
 export const useRoles = () => {

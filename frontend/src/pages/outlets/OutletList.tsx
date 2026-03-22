@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
     Table,
     TableBody,
@@ -50,7 +50,6 @@ import {
     Package,
     ShoppingCart,
     Search,
-    X,
     AlertTriangle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -135,15 +134,34 @@ function OutletForm({ initial, onSubmit, isPending, onClose }: OutletFormProps) 
     );
 }
 
-function AlertSettingsForm({ outlet, onSubmit, isPending, onClose }: { outlet: Outlet; onSubmit: (data: { alertsEnabled: boolean; alertEmail?: string }) => void; isPending: boolean; onClose: () => void }) {
+function AlertSettingsForm({
+    outlet,
+    onSubmit,
+    isPending,
+    onClose,
+}: {
+    outlet: Outlet;
+    onSubmit: (data: {
+        alertsEnabled: boolean;
+        alertEmail?: string;
+        telegramAlertsEnabled?: boolean;
+    }) => void;
+    isPending: boolean;
+    onClose: () => void;
+}) {
     const [alertsEnabled, setAlertsEnabled] = useState(outlet.alertsEnabled);
     const [email, setEmail] = useState(outlet.email ?? '');
+    const [telegramAlertsEnabled, setTelegramAlertsEnabled] = useState(Boolean(outlet.telegramAlertsEnabled));
 
     return (
         <form
             onSubmit={(e) => {
                 e.preventDefault();
-                onSubmit({ alertsEnabled, alertEmail: email || undefined });
+                onSubmit({
+                    alertsEnabled,
+                    alertEmail: email || undefined,
+                    telegramAlertsEnabled,
+                });
             }}
             className="space-y-6 pt-2"
         >
@@ -158,17 +176,38 @@ function AlertSettingsForm({ outlet, onSubmit, isPending, onClose }: { outlet: O
             </div>
 
             {alertsEnabled && (
-                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <Label htmlFor="alert-email">Notification Email *</Label>
-                    <Input
-                        id="alert-email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="notifications@outlet.com"
-                        type="email"
-                        required={alertsEnabled}
-                        className="h-11 rounded-xl"
-                    />
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="space-y-2">
+                        <Label htmlFor="alert-email">Notification Email *</Label>
+                        <Input
+                            id="alert-email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="notifications@outlet.com"
+                            type="email"
+                            required={alertsEnabled}
+                            className="h-11 rounded-xl"
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-800">
+                        <div className="space-y-0.5">
+                            <Label className="text-base font-bold">Telegram Alerts</Label>
+                            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                                Enable Telegram routing. Chat connection is managed in Store Settings.
+                            </p>
+                        </div>
+                        <Switch
+                            checked={telegramAlertsEnabled}
+                            onCheckedChange={setTelegramAlertsEnabled}
+                        />
+                    </div>
+
+                    <div className="text-xs text-slate-500 rounded-xl border border-slate-200 dark:border-slate-700 p-3 bg-white/70 dark:bg-slate-900/50">
+                        {outlet.telegramChatId
+                            ? `Connected Telegram: ${outlet.telegramChatTitle || outlet.telegramChatId}`
+                            : 'No Telegram chat connected yet.'}
+                    </div>
                 </div>
             )}
 
@@ -212,7 +251,11 @@ export default function OutletList() {
         updateOutlet.mutate({ id: dialogMode.outlet.id, payload }, { onSuccess: () => setDialogMode(null) });
     };
 
-    const handleUpdateAlerts = (payload: { alertsEnabled: boolean; alertEmail?: string }) => {
+    const handleUpdateAlerts = (payload: {
+        alertsEnabled: boolean;
+        alertEmail?: string;
+        telegramAlertsEnabled?: boolean;
+    }) => {
         if (dialogMode?.type !== 'alerts') return;
         updateAlerts.mutate({ id: dialogMode.outlet.id, payload }, { onSuccess: () => setDialogMode(null) });
     };

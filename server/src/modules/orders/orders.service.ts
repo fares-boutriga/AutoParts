@@ -8,6 +8,20 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { StockAlertsService } from '../stock-alerts/stock-alerts.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 
+type PendingStockAlert = {
+    stockId: string;
+    productName: string;
+    currentQuantity: number;
+    minStockLevel: number;
+    outletName: string;
+    outletId: string;
+    productId: string;
+    outletEmail: string | null;
+    alertsEnabled: boolean;
+    outletTelegramChatId: string | null;
+    telegramAlertsEnabled: boolean;
+};
+
 @Injectable()
 export class OrdersService {
     constructor(
@@ -44,8 +58,10 @@ export class OrdersService {
             }
         }
 
-        // 2. Transaction: Create Order -> Create Items -> Deduct Stock -> Create Alerts
-        return this.prisma.$transaction(async (tx) => {
+        // 2. Transaction: Create Order -> Create Items -> Deduct Stock
+        const transactionResult = await this.prisma.$transaction(async (tx) => {
+            const pendingStockAlerts: PendingStockAlert[] = [];
+
             // Create Order
             const order = await tx.order.create({
                 data: {
@@ -106,26 +122,51 @@ export class OrdersService {
                         const shouldAlert = !stock.lastAlertAt || stock.lastAlertAt < cooldownDate;
 
                         if (shouldAlert) {
-                            // Create alert notification within transaction
-                            // Email will be sent asynchronously (fire and forget)
-                            await this.stockAlertsService.createStockAlert(
-                                stock.id,
-                                stock.product.name,
-                                newQuantity,
-                                effectiveMinLevel,
-                                stock.outlet.name,
-                                stock.outletId,
-                                stock.productId,
-                                stock.outlet.email,
-                                stock.outlet.alertsEnabled,
-                            );
+                            pendingStockAlerts.push({
+                                stockId: stock.id,
+                                productName: stock.product.name,
+                                currentQuantity: newQuantity,
+                                minStockLevel: effectiveMinLevel,
+                                outletName: stock.outlet.name,
+                                outletId: stock.outletId,
+                                productId: stock.productId,
+                                outletEmail: stock.outlet.email,
+                                alertsEnabled: stock.outlet.alertsEnabled,
+                                outletTelegramChatId: (stock.outlet as any).telegramChatId ?? null,
+                                telegramAlertsEnabled: Boolean((stock.outlet as any).telegramAlertsEnabled),
+                            });
                         }
                     }
                 }
             }
 
-            return order;
+            return { order, pendingStockAlerts };
+        }, {
+            maxWait: 10000,
+            timeout: 15000,
         });
+
+        for (const alert of transactionResult.pendingStockAlerts) {
+            this.stockAlertsService
+                .createStockAlert(
+                    alert.stockId,
+                    alert.productName,
+                    alert.currentQuantity,
+                    alert.minStockLevel,
+                    alert.outletName,
+                    alert.outletId,
+                    alert.productId,
+                    alert.outletEmail,
+                    alert.alertsEnabled,
+                    alert.outletTelegramChatId,
+                    alert.telegramAlertsEnabled,
+                )
+                .catch((error) => {
+                    console.error('[OrdersService] Failed to create stock alert post-commit:', error);
+                });
+        }
+
+        return transactionResult.order;
     }
 
     private async resolveOutletId(cashierId: string, requestedOutletId?: string): Promise<string> {

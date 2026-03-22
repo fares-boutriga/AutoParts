@@ -3,19 +3,21 @@ import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
+import { TelegramService } from '../telegram/telegram.service';
 
 @Injectable()
 export class StockAlertsService {
     constructor(
         private prisma: PrismaService,
         private emailService: EmailService,
+        private telegramService: TelegramService,
         private configService: ConfigService,
     ) { }
 
     // Backup cron job for periodic stock checks
-    @Cron('*/5 * * * *') // Every 5 minutes (configurable via env)
+    @Cron('*/5 * * * *') // Every 5 minutes
     async checkStockLevels() {
-        console.log('🔍 Running stock level check...');
+        console.log('[StockAlertsService] Running stock level check...');
 
         const cooldownHours = this.configService.get<number>(
             'STOCK_ALERT_COOLDOWN_HOURS',
@@ -25,11 +27,10 @@ export class StockAlertsService {
         const cooldownDate = new Date();
         cooldownDate.setHours(cooldownDate.getHours() - cooldownHours);
 
-        // Find stocks below minimum level that haven't been alerted recently
+        // Find stocks below outlet-specific minimum and not alerted recently
         const lowStocks = await this.prisma.stock.findMany({
             where: {
                 OR: [
-                    // Stock below outlet-specific minimum
                     {
                         minStockLevel: { not: null },
                         quantity: { lt: this.prisma.stock.fields.minStockLevel },
@@ -46,7 +47,7 @@ export class StockAlertsService {
             },
         });
 
-        // Also check stocks using global minimum
+        // Stocks using product global minimum
         const globalLowStocks = await this.prisma.stock.findMany({
             where: {
                 minStockLevel: null,
@@ -62,15 +63,13 @@ export class StockAlertsService {
         });
 
         const allLowStocks = [...lowStocks];
-
-        // Filter global stocks where quantity is below product minimum
         for (const stock of globalLowStocks) {
             if (stock.quantity < stock.product.minStockLevel) {
                 allLowStocks.push(stock);
             }
         }
 
-        console.log(`Found ${allLowStocks.length} low stock items`);
+        console.log(`[StockAlertsService] Found ${allLowStocks.length} low stock items`);
 
         for (const stock of allLowStocks) {
             await this.createStockAlert(
@@ -83,6 +82,8 @@ export class StockAlertsService {
                 stock.productId,
                 stock.outlet.email,
                 stock.outlet.alertsEnabled,
+                (stock.outlet as any).telegramChatId ?? null,
+                Boolean((stock.outlet as any).telegramAlertsEnabled),
             );
         }
     }
@@ -100,11 +101,8 @@ export class StockAlertsService {
         if (!stock) return;
 
         const effectiveMinLevel = stock.minStockLevel ?? stock.product.minStockLevel;
-
-        // Check if below minimum
         if (stock.quantity >= effectiveMinLevel) return;
 
-        // Check cooldown
         const cooldownHours = this.configService.get<number>(
             'STOCK_ALERT_COOLDOWN_HOURS',
             24,
@@ -113,7 +111,7 @@ export class StockAlertsService {
         cooldownDate.setHours(cooldownDate.getHours() - cooldownHours);
 
         if (stock.lastAlertAt && stock.lastAlertAt > cooldownDate) {
-            console.log(`⏳ Skipping alert for ${stock.product.name} (cooldown active)`);
+            console.log(`[StockAlertsService] Skipping alert for ${stock.product.name} (cooldown active)`);
             return;
         }
 
@@ -127,14 +125,15 @@ export class StockAlertsService {
             stock.productId,
             stock.outlet.email,
             stock.outlet.alertsEnabled,
+            (stock.outlet as any).telegramChatId ?? null,
+            Boolean((stock.outlet as any).telegramAlertsEnabled),
         );
     }
 
     /**
-     * Create stock alert notification and send email
-     * This method is public so it can be called from OrdersService
-     * Notification creation is synchronous (for transaction safety)
-     * Email sending is asynchronous (fire and forget)
+     * Create stock alert notification and send alert channels.
+     * Notification creation is synchronous (transaction-safe).
+     * Channel delivery is async fire-and-forget.
      */
     async createStockAlert(
         stockId: string,
@@ -146,9 +145,10 @@ export class StockAlertsService {
         productId: string,
         outletEmail: string | null,
         alertsEnabled: boolean,
+        outletTelegramChatId: string | null,
+        telegramAlertsEnabled: boolean,
     ) {
         try {
-            // Create in-app notification (synchronous - part of transaction)
             await this.prisma.notification.create({
                 data: {
                     type: 'STOCK_ALERT',
@@ -159,32 +159,45 @@ export class StockAlertsService {
                 },
             });
 
-            console.log(`📢 Created in-app notification for ${productName}`);
-
-            // Send email asynchronously (fire and forget - not part of transaction)
             if (alertsEnabled && outletEmail) {
-                // Don't await - let it run in background
-                this.emailService.sendStockAlert(
-                    outletEmail,
-                    productName,
-                    currentQuantity,
-                    minStockLevel,
-                    outletName,
-                ).catch((error) => {
-                    console.error(`❌ Failed to send email alert:`, error);
-                });
+                this.emailService
+                    .sendStockAlert(
+                        outletEmail,
+                        productName,
+                        currentQuantity,
+                        minStockLevel,
+                        outletName,
+                    )
+                    .catch((error) => {
+                        console.error('[StockAlertsService] Failed to send email alert:', error);
+                    });
             }
 
-            // Update last alert timestamp
+            if (alertsEnabled && telegramAlertsEnabled && outletTelegramChatId) {
+                this.telegramService
+                    .sendStockAlert({
+                        recipientChatId: outletTelegramChatId,
+                        productName,
+                        currentQuantity,
+                        minStockLevel,
+                        outletName,
+                    })
+                    .catch((error) => {
+                        console.error('[StockAlertsService] Failed to send Telegram alert:', error);
+                    });
+            } else if (alertsEnabled && telegramAlertsEnabled && !outletTelegramChatId) {
+                console.warn(
+                    `[StockAlertsService] Telegram alerts enabled but outlet has no connected Telegram chat (${outletId})`,
+                );
+            }
+
             await this.prisma.stock.update({
                 where: { id: stockId },
                 data: { lastAlertAt: new Date() },
             });
-
-            console.log(`✅ Stock alert processed for ${productName}`);
         } catch (error) {
-            console.error(`❌ Failed to create stock alert:`, error);
-            throw error; // Re-throw to allow transaction rollback
+            console.error('[StockAlertsService] Failed to create stock alert:', error);
+            throw error;
         }
     }
 }

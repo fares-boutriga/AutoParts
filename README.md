@@ -105,12 +105,12 @@ Use `/auth/refresh` to get a new access token when it expires.
 ### 2. Multi-Outlet Support
 - Users can be assigned to multiple outlets
 - Stock, orders, and alerts are outlet-specific
-- Each outlet can configure email alerts independently
+- Each outlet can configure email and Telegram alerts independently
 
 ### 3. Stock Alert System
 - **Real-time alerts**: Triggered immediately on purchase
 - **Backup cron job**: Configurable periodic checks (default: 5 minutes)
-- **Multi-channel**: In-app notifications + email (SMTP/OVH)
+- **Multi-channel**: In-app notifications + email (SMTP/OVH) + Telegram (Bot API)
 - **Smart cooldown**: 24-hour alert cooldown to prevent spam
 - **Configurable thresholds**: Global + outlet-specific minimum stock levels
 
@@ -151,7 +151,14 @@ Use `/auth/refresh` to get a new access token when it expires.
 - `GET /outlets/:id` - Get outlet details
 - `POST /outlets` - Create outlet (Admin)
 - `PATCH /outlets/:id` - Update outlet
+- `PATCH /outlets/:id/alerts` - Update alert channels
+- `POST /outlets/:id/telegram/connect/init` - Create 1-click Telegram connect link
+- `GET /outlets/:id/telegram/connect/status` - Get Telegram connection status
+- `DELETE /outlets/:id/telegram/connect` - Disconnect Telegram chat
 - `DELETE /outlets/:id` - Delete outlet
+
+### Telegram Integration (`/integrations/telegram`)
+- `POST /integrations/telegram/webhook` - Telegram webhook for connection handshake
 
 ### Products (`/products`) 🔒
 - `GET /products` - List products (with filters)
@@ -216,6 +223,15 @@ SMTP_USER="contact@faresdev.tn"
 SMTP_PASSWORD="your-ovh-mail-password"
 EMAIL_FROM="Auto Parts POS <contact@faresdev.tn>"
 ADMIN_EMAIL="contact@faresdev.tn"
+
+# Telegram
+TELEGRAM_ENABLED=false
+TELEGRAM_BOT_TOKEN="123456789:your-telegram-bot-token"
+TELEGRAM_BOT_USERNAME="your_bot_username"
+TELEGRAM_WEBHOOK_SECRET="set-a-random-secret-for-webhook-validation"
+TELEGRAM_CONNECT_TOKEN_TTL_MINUTES=10
+TELEGRAM_TEST_MODE=false
+TELEGRAM_TEST_CHAT_ID="-1001234567890"
 ```
 
 ### OVH Mail Setup
@@ -254,6 +270,18 @@ ADMIN_EMAIL="contact@faresdev.tn"
    - Outlet has `email` configured
    - `alertsEnabled` is `true`
    - SMTP credentials are valid
+3. **Telegram**: Sent only if:
+   - Outlet has `telegramChatId` configured
+   - `alertsEnabled` is `true`
+   - `telegramAlertsEnabled` is `true`
+   - Telegram bot token is valid
+
+### Telegram Connection Flow (No Manual Chat ID)
+
+1. User clicks **Connect Telegram** in store settings.
+2. Backend generates a one-time deep link (`start` or `startgroup`) with short TTL.
+3. Telegram webhook receives the callback message and binds chat to the outlet.
+4. UI displays connected status (`chatTitle`) and alerts can be enabled safely.
 
 ## 🧪 Testing
 
@@ -323,6 +351,7 @@ Features:
 - **Validation**: class-validator, class-transformer
 - **Documentation**: Swagger/OpenAPI
 - **Email**: Nodemailer (SMTP/OVH)
+- **Telegram**: Telegram Bot API
 - **Scheduling**: @nestjs/schedule (cron jobs)
 
 ## 🛡️ Security

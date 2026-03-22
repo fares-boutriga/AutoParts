@@ -3,6 +3,8 @@ import { toast } from 'react-hot-toast';
 import { outletsApi } from '@/lib/api/endpoints/outlets';
 import type {
     CreateOutletPayload,
+    InitTelegramConnectPayload,
+    InitTelegramConnectResponse,
     UpdateOutletPayload,
     UpdateOutletAlertsPayload,
 } from '@/lib/api/endpoints/outlets';
@@ -81,6 +83,52 @@ export const useDeleteOutlet = () => {
         },
         onError: (error: any) => {
             const message = error.response?.data?.message || 'Failed to delete outlet';
+            toast.error(message);
+        },
+    });
+};
+
+export const useInitTelegramConnection = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({
+            id,
+            payload,
+        }: {
+            id: string;
+            payload: InitTelegramConnectPayload;
+        }) => outletsApi.initTelegramConnect(id, payload),
+        onSuccess: (_data: InitTelegramConnectResponse, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['outlets'] });
+            queryClient.invalidateQueries({ queryKey: ['telegram-connect-status', variables.id] });
+        },
+        onError: (error: any) => {
+            const message = error.response?.data?.message || 'Failed to initialize Telegram connection';
+            toast.error(message);
+        },
+    });
+};
+
+export const useTelegramConnectionStatus = (outletId: string | null) => {
+    return useQuery({
+        queryKey: ['telegram-connect-status', outletId],
+        queryFn: () => outletsApi.getTelegramConnectStatus(outletId!),
+        enabled: !!outletId,
+        refetchInterval: 15000,
+    });
+};
+
+export const useDisconnectTelegramConnection = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id }: { id: string }) => outletsApi.disconnectTelegram(id),
+        onSuccess: (_data: { success: true }, variables: { id: string }) => {
+            queryClient.invalidateQueries({ queryKey: ['outlets'] });
+            queryClient.invalidateQueries({ queryKey: ['telegram-connect-status', variables.id] });
+            toast.success('Telegram disconnected');
+        },
+        onError: (error: any) => {
+            const message = error.response?.data?.message || 'Failed to disconnect Telegram';
             toast.error(message);
         },
     });

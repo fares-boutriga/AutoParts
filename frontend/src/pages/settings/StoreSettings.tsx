@@ -1,14 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useStoreSettings, useUpdateStoreSettings } from '@/hooks/useStoreSettings';
-import { useOutlets, useUpdateOutletAlerts } from '@/hooks/useOutlets';
+import {
+    useOutlets,
+    useUpdateOutletAlerts,
+    useInitTelegramConnection,
+    useTelegramConnectionStatus,
+    useDisconnectTelegramConnection,
+} from '@/hooks/useOutlets';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     Store, Phone, Mail, MapPin, FileText, Hash,
-    BadgePercent, Save, Loader2, Eye, Building2, BellRing
+    BadgePercent, Save, Loader2, Eye, Building2, BellRing, Link2, Unlink
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -104,6 +112,8 @@ export default function StoreSettingsPage() {
     const { data: outlets } = useOutlets();
     const update = useUpdateStoreSettings();
     const updateOutletAlerts = useUpdateOutletAlerts();
+    const initTelegramConnection = useInitTelegramConnection();
+    const disconnectTelegramConnection = useDisconnectTelegramConnection();
 
     const [form, setForm] = useState({
         storeName: '',
@@ -118,9 +128,16 @@ export default function StoreSettingsPage() {
     const [notificationSettings, setNotificationSettings] = useState({
         alertsEnabled: true,
         alertEmail: '',
+        telegramAlertsEnabled: false,
     });
+    const [telegramTargetType, setTelegramTargetType] = useState<'group' | 'private'>('group');
 
     const primaryOutlet = outlets?.[0];
+    const {
+        data: telegramConnectStatus,
+        refetch: refetchTelegramConnectStatus,
+        isFetching: isTelegramStatusFetching,
+    } = useTelegramConnectionStatus(primaryOutlet?.id || null);
 
     useEffect(() => {
         if (settings) {
@@ -142,9 +159,18 @@ export default function StoreSettingsPage() {
             setNotificationSettings({
                 alertsEnabled: Boolean(primaryOutlet.alertsEnabled),
                 alertEmail: primaryOutlet.email || '',
+                telegramAlertsEnabled: Boolean(primaryOutlet.telegramAlertsEnabled),
             });
         }
     }, [primaryOutlet]);
+
+    const effectiveTelegramStatus = telegramConnectStatus || {
+        connected: Boolean(primaryOutlet?.telegramChatId),
+        chatId: primaryOutlet?.telegramChatId || null,
+        chatType: primaryOutlet?.telegramChatType || null,
+        chatTitle: primaryOutlet?.telegramChatTitle || null,
+        connectedAt: primaryOutlet?.telegramConnectedAt || null,
+    };
 
     const handleChange = (field: string, value: string) => {
         setForm((prev) => ({ ...prev, [field]: value }));
@@ -174,14 +200,60 @@ export default function StoreSettingsPage() {
             toast.error("L'email de notification est requis");
             return;
         }
-
         updateOutletAlerts.mutate({
             id: primaryOutlet.id,
             payload: {
                 alertsEnabled: notificationSettings.alertsEnabled,
                 alertEmail: notificationSettings.alertEmail.trim() || undefined,
+                telegramAlertsEnabled: notificationSettings.telegramAlertsEnabled,
+            },
+        }, {
+            onSuccess: () => {
+                if (
+                    notificationSettings.alertsEnabled &&
+                    notificationSettings.telegramAlertsEnabled &&
+                    !effectiveTelegramStatus.connected
+                ) {
+                    toast('Telegram est active, mais non connecte. Cliquez sur "Connecter Telegram".');
+                }
             },
         });
+    };
+
+    const handleStartTelegramConnect = () => {
+        if (!primaryOutlet) {
+            toast.error('Aucun point de vente configure');
+            return;
+        }
+
+        initTelegramConnection.mutate({
+            id: primaryOutlet.id,
+            payload: { targetType: telegramTargetType },
+        }, {
+            onSuccess: (data) => {
+                window.open(data.connectUrl, '_blank', 'noopener,noreferrer');
+                toast.success('Telegram ouvert. Terminez la connexion puis revenez ici.');
+                setTimeout(() => {
+                    refetchTelegramConnectStatus();
+                }, 2500);
+            },
+        });
+    };
+
+    const handleDisconnectTelegram = () => {
+        if (!primaryOutlet) {
+            toast.error('Aucun point de vente configure');
+            return;
+        }
+
+        disconnectTelegramConnection.mutate(
+            { id: primaryOutlet.id },
+            {
+                onSuccess: () => {
+                    refetchTelegramConnectStatus();
+                },
+            },
+        );
     };
 
     if (isLoading) {
@@ -323,6 +395,108 @@ export default function StoreSettingsPage() {
                                     {!primaryOutlet && (
                                         <p className="text-xs text-amber-600">Aucun point de vente configure. Creez un point de vente d'abord.</p>
                                     )}
+                                </div>
+
+                                <div className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/40 p-4">
+                                    <div className="space-y-1">
+                                        <p className="font-bold">Notifications Telegram</p>
+                                        <p className="text-xs text-slate-500">Envoyer aussi les alertes de stock via Telegram.</p>
+                                    </div>
+                                    <Switch
+                                        checked={notificationSettings.telegramAlertsEnabled}
+                                        disabled={!notificationSettings.alertsEnabled}
+                                        onCheckedChange={(checked) =>
+                                            setNotificationSettings((prev) => ({ ...prev, telegramAlertsEnabled: checked }))
+                                        }
+                                    />
+                                </div>
+
+                                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30 p-4 space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="space-y-1">
+                                            <p className="font-bold text-sm">Connexion Telegram</p>
+                                            <p className="text-xs text-slate-500">
+                                                Aucune saisie technique. Connectez votre bot en 1 clic.
+                                            </p>
+                                        </div>
+                                        {effectiveTelegramStatus.connected ? (
+                                            <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 border-none">
+                                                Connecte
+                                            </Badge>
+                                        ) : (
+                                            <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 border-none">
+                                                Non connecte
+                                            </Badge>
+                                        )}
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div className="space-y-2">
+                                            <Label>Cible Telegram</Label>
+                                            <Select
+                                                value={telegramTargetType}
+                                                onValueChange={(value) => setTelegramTargetType(value as 'group' | 'private')}
+                                                disabled={!primaryOutlet}
+                                            >
+                                                <SelectTrigger className="h-11 rounded-xl">
+                                                    <SelectValue placeholder="Choisir une cible" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="group">Groupe du magasin</SelectItem>
+                                                    <SelectItem value="private">Chat prive admin</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Etat actuel</Label>
+                                            <div className="h-11 rounded-xl border border-slate-200 dark:border-slate-700 px-3 flex items-center text-sm">
+                                                {effectiveTelegramStatus.connected
+                                                    ? `${effectiveTelegramStatus.chatTitle || effectiveTelegramStatus.chatId || 'Connecte'}`
+                                                    : 'Aucune connexion Telegram'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="rounded-xl"
+                                            onClick={handleStartTelegramConnect}
+                                            disabled={!primaryOutlet || initTelegramConnection.isPending}
+                                        >
+                                            <Link2 className="h-4 w-4 mr-2" />
+                                            {effectiveTelegramStatus.connected ? 'Reconnecter Telegram' : 'Connecter Telegram'}
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            className="rounded-xl"
+                                            onClick={() => refetchTelegramConnectStatus()}
+                                            disabled={!primaryOutlet || isTelegramStatusFetching}
+                                        >
+                                            Actualiser le statut
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="rounded-xl text-rose-500 border-rose-200 hover:bg-rose-50"
+                                            onClick={handleDisconnectTelegram}
+                                            disabled={!effectiveTelegramStatus.connected || disconnectTelegramConnection.isPending}
+                                        >
+                                            <Unlink className="h-4 w-4 mr-2" />
+                                            Deconnecter
+                                        </Button>
+                                    </div>
+
+                                    {notificationSettings.alertsEnabled &&
+                                        notificationSettings.telegramAlertsEnabled &&
+                                        !effectiveTelegramStatus.connected && (
+                                            <p className="text-xs text-amber-600">
+                                                Telegram est active mais non connecte. Les alertes Telegram seront ignorees
+                                                jusqu'a la connexion.
+                                            </p>
+                                        )}
                                 </div>
 
                                 <Button

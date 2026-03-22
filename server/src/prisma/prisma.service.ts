@@ -6,6 +6,10 @@ export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy {
   constructor() {
+    if ((process.env.PRISMA_CLIENT_ENGINE_TYPE || '').toLowerCase() === 'client') {
+      process.env.PRISMA_CLIENT_ENGINE_TYPE = 'library';
+    }
+
     super({
       datasources: {
         db: {
