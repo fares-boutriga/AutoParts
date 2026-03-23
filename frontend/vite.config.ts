@@ -7,7 +7,6 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "scheduler": path.resolve(__dirname, "node_modules/scheduler/cjs/scheduler.development.js"),
     },
   },
   server: {
