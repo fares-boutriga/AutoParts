@@ -17,6 +17,8 @@ import { GetLowStockQueryDto } from './dto/get-low-stock-query.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+
 
 @ApiTags('Stock')
 @ApiBearerAuth()
@@ -30,16 +32,16 @@ export class StockController {
     @RequirePermissions('manage_stock')
     @ApiOperation({ summary: 'Create stock record' })
     @ApiBody({ type: CreateStockDto })
-    create(@Body() createStockDto: CreateStockDto) {
-        return this.stockService.create(createStockDto);
+    create(@Body() createStockDto: CreateStockDto, @CurrentUser() user: any) {
+        return this.stockService.create(createStockDto, user);
     }
 
     @Get()
     @ApiOperation({ summary: 'Get all stock records' })
     @ApiQuery({ name: 'outletId', required: false })
     @ApiQuery({ name: 'productId', required: false })
-    findAll(@Query('outletId') outletId?: string, @Query('productId') productId?: string) {
-        return this.stockService.findAll({ outletId, productId });
+    findAll(@Query('outletId') outletId?: string, @Query('productId') productId?: string, @CurrentUser() user?: any) {
+        return this.stockService.findAll({ outletId, productId }, user);
     }
 
     @Get('low')
@@ -95,35 +97,35 @@ export class StockController {
         status: 400,
         description: 'Invalid query parameters'
     })
-    findLowStock(@Query() query: GetLowStockQueryDto) {
-        return this.stockService.findLowStock(query.outletId, query.threshold);
+    findLowStock(@Query() query: GetLowStockQueryDto, @CurrentUser() user?: any) {
+        return this.stockService.findLowStock(query.outletId, query.threshold, user);
     }
 
     @Get('outlet/:outletId')
     @ApiOperation({ summary: 'Get stock for outlet' })
-    findByOutlet(@Param('outletId') outletId: string) {
-        return this.stockService.findAll({ outletId });
+    findByOutlet(@Param('outletId') outletId: string, @CurrentUser() user?: any) {
+        return this.stockService.findAll({ outletId }, user);
     }
 
     @Get('outlet/:outletId/product/:productId')
     @ApiOperation({ summary: 'Get specific stock record' })
-    findOne(@Param('outletId') outletId: string, @Param('productId') productId: string) {
-        return this.stockService.findOne(outletId, productId);
+    findOne(@Param('outletId') outletId: string, @Param('productId') productId: string, @CurrentUser() user?: any) {
+        return this.stockService.findOne(outletId, productId, user);
     }
 
     @Patch(':id')
     @RequirePermissions('manage_stock')
     @ApiOperation({ summary: 'Update stock record' })
     @ApiBody({ type: UpdateStockDto })
-    update(@Param('id') id: string, @Body() updateStockDto: UpdateStockDto) {
-        return this.stockService.update(id, updateStockDto);
+    update(@Param('id') id: string, @Body() updateStockDto: UpdateStockDto, @CurrentUser() user?: any) {
+        return this.stockService.update(id, updateStockDto, user);
     }
 
     @Post(':id/adjust')
     @RequirePermissions('manage_stock')
     @ApiOperation({ summary: 'Adjust stock quantity' })
     @ApiBody({ type: AdjustStockDto })
-    adjust(@Param('id') id: string, @Body() adjustStockDto: AdjustStockDto) {
-        return this.stockService.adjust(id, adjustStockDto);
+    adjust(@Param('id') id: string, @Body() adjustStockDto: AdjustStockDto, @CurrentUser() user?: any) {
+        return this.stockService.adjust(id, adjustStockDto, user);
     }
 }

@@ -12,7 +12,39 @@ export class StockService {
         private stockAlertsService: StockAlertsService,
     ) { }
 
-    async create(createStockDto: CreateStockDto) {
+    private verifyOutletAccess(outletId: string, user?: any) {
+        if (!user) return; // If AuthGuard is bypassed or user not injected, fallback to previous behavior
+        const isAdmin = user.roles?.some((ur: any) => ur.role?.name?.toLowerCase().includes('admin'));
+        if (isAdmin) return;
+        
+        const assignedOutletIds = user.outlets?.map((ou: any) => ou.outletId) || [];
+        if (!assignedOutletIds.includes(outletId)) {
+            import('@nestjs/common').then(m => {
+                throw new m.ForbiddenException('You do not have access to manage stock for this outlet');
+            });
+            throw new Error('Forbidden'); // Fallback purely for runtime type guarantee
+        }
+    }
+
+    private enforceFindAllAccess(where: any, filtersOutletId: string | undefined, user?: any) {
+        if (!user) return;
+        const isAdmin = user.roles?.some((ur: any) => ur.role?.name?.toLowerCase().includes('admin'));
+        if (isAdmin) return;
+
+        const assignedOutletIds = user.outlets?.map((ou: any) => ou.outletId) || [];
+        if (filtersOutletId && !assignedOutletIds.includes(filtersOutletId)) {
+             import('@nestjs/common').then(m => {
+                 throw new m.ForbiddenException('You do not have access to manage stock for this outlet');
+             });
+             throw new Error('Forbidden');
+        }
+        if (!filtersOutletId) {
+            where.outletId = { in: assignedOutletIds };
+        }
+    }
+
+    async create(createStockDto: CreateStockDto, user?: any) {
+        this.verifyOutletAccess(createStockDto.outletId, user);
         // Check for existing stock
         const existing = await this.prisma.stock.findUnique({
             where: {
@@ -38,8 +70,10 @@ export class StockService {
         return stock;
     }
 
-    async findAll(filters?: { outletId?: string; productId?: string }) {
+    async findAll(filters: { outletId?: string; productId?: string } = {}, user?: any) {
         const where: any = {};
+        
+        this.enforceFindAllAccess(where, filters?.outletId, user);
         if (filters?.outletId) where.outletId = filters.outletId;
         if (filters?.productId) where.productId = filters.productId;
 
@@ -53,7 +87,8 @@ export class StockService {
         });
     }
 
-    async findLowStock(outletId: string, threshold?: number) {
+    async findLowStock(outletId: string, threshold?: number, user?: any) {
+        this.verifyOutletAccess(outletId, user);
         // Get all stock for the outlet with product details
         const stocks = await this.prisma.stock.findMany({
             where: { outletId },
@@ -71,7 +106,8 @@ export class StockService {
         });
     }
 
-    async findOne(outletId: string, productId: string) {
+    async findOne(outletId: string, productId: string, user?: any) {
+        this.verifyOutletAccess(outletId, user);
         const stock = await this.prisma.stock.findUnique({
             where: {
                 productId_outletId: { productId, outletId },
@@ -83,26 +119,32 @@ export class StockService {
         return stock;
     }
 
-    async update(id: string, updateStockDto: UpdateStockDto) {
+    async update(id: string, updateStockDto: UpdateStockDto, user?: any) {
         try {
-            const stock = await this.prisma.stock.update({
+            const stock = await this.prisma.stock.findUniqueOrThrow({
+                where: { id },
+            });
+            this.verifyOutletAccess(stock.outletId, user);
+
+            const updatedStock = await this.prisma.stock.update({
                 where: { id },
                 data: updateStockDto,
                 include: { product: true, outlet: true },
             });
 
             // Alert check
-            await this.stockAlertsService.checkStockAfterUpdate(stock.id);
+            await this.stockAlertsService.checkStockAfterUpdate(updatedStock.id);
 
-            return stock;
+            return updatedStock;
         } catch {
             throw new NotFoundException('Stock record not found');
         }
     }
 
-    async adjust(id: string, adjustStockDto: AdjustStockDto) {
+    async adjust(id: string, adjustStockDto: AdjustStockDto, user?: any) {
         const stock = await this.prisma.stock.findUnique({ where: { id } });
         if (!stock) throw new NotFoundException('Stock record not found');
+        this.verifyOutletAccess(stock.outletId, user);
 
         const newQuantity = stock.quantity + adjustStockDto.adjustment;
 

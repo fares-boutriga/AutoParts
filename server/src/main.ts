@@ -3,10 +3,18 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Security Middlewares
+  app.use(helmet({
+    crossOriginResourcePolicy: false, // Allow serving static files
+  }));
+  app.use(cookieParser());
 
   // Serve frontend static build from server/public
   app.useStaticAssets(join(process.cwd(), 'public'));
@@ -28,34 +36,38 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger configuration
-  const config = new DocumentBuilder()
-    .setTitle('Auto Parts POS API')
-    .setDescription(
-      'Production-ready backend for car spare parts sales management',
-    )
-    .setVersion('1.0')
-    .addBearerAuth()
-    .addTag('Authentication')
-    .addTag('Users')
-    .addTag('Roles & Permissions')
-    .addTag('Outlets')
-    .addTag('Products')
-    .addTag('Stock')
-    .addTag('Orders')
-    .addTag('Customers')
-    .addTag('Notifications')
-    .addTag('Dashboard')
-    .build();
-
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  // Swagger configuration (Only in non-production)
+  if (process.env.NODE_ENV !== 'production') {
+      const config = new DocumentBuilder()
+        .setTitle('Auto Parts POS API')
+        .setDescription(
+          'Production-ready backend for car spare parts sales management',
+        )
+        .setVersion('1.0')
+        .addBearerAuth()
+        .addTag('Authentication')
+        .addTag('Users')
+        .addTag('Roles & Permissions')
+        .addTag('Outlets')
+        .addTag('Products')
+        .addTag('Stock')
+        .addTag('Orders')
+        .addTag('Customers')
+        .addTag('Notifications')
+        .addTag('Dashboard')
+        .build();
+    
+      const document = SwaggerModule.createDocument(app, config);
+      SwaggerModule.setup('api/docs', app, document);
+  }
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
   console.log(`🚀 Application is running on: http://localhost:${port}`);
-  console.log(`📚 Swagger documentation: http://localhost:${port}/api/docs`);
+  if (process.env.NODE_ENV !== 'production') {
+      console.log(`📚 Swagger documentation: http://localhost:${port}/api/docs`);
+  }
 }
 
 bootstrap();

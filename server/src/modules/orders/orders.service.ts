@@ -232,18 +232,33 @@ export class OrdersService {
         throw new ForbiddenException('No outlet is assigned to the current user');
     }
 
-    async findAll(filters?: {
+    async findAll(filters: {
         outletId?: string;
         cashierId?: string;
         page?: number;
         limit?: number;
         search?: string;
-    }) {
+    } = {}, user?: any) {
         const page = Number(filters?.page) || 1;
         const limit = Number(filters?.limit) || 10;
         const skip = (page - 1) * limit;
 
         const where: any = {};
+        
+        // Authorization scope
+        if (user) {
+            const isAdmin = user.roles?.some((ur: any) => ur.role?.name?.toLowerCase().includes('admin'));
+            if (!isAdmin) {
+                const assignedOutletIds = user.outlets?.map((ou: any) => ou.outletId) || [];
+                if (filters?.outletId && !assignedOutletIds.includes(filters.outletId)) {
+                    throw new ForbiddenException('You do not have access to view orders for this outlet');
+                }
+                if (!filters?.outletId) {
+                    where.outletId = { in: assignedOutletIds };
+                }
+            }
+        }
+
         if (filters?.outletId) where.outletId = filters.outletId;
         if (filters?.cashierId) where.cashierId = filters.cashierId;
 
@@ -281,7 +296,7 @@ export class OrdersService {
         };
     }
 
-    async findOne(id: string) {
+    async findOne(id: string, user?: any) {
         const order = await this.prisma.order.findUnique({
             where: { id },
             include: {
@@ -293,6 +308,18 @@ export class OrdersService {
         });
 
         if (!order) throw new NotFoundException('Order not found');
+
+        // Verify IDOR
+        if (user) {
+            const isAdmin = user.roles?.some((ur: any) => ur.role?.name?.toLowerCase().includes('admin'));
+            if (!isAdmin) {
+                const assignedOutletIds = user.outlets?.map((ou: any) => ou.outletId) || [];
+                if (!assignedOutletIds.includes(order.outletId)) {
+                    throw new ForbiddenException('You do not have access to view this order');
+                }
+            }
+        }
+
         return order;
     }
 }

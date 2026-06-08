@@ -45,6 +45,7 @@ export class OrdersController {
         @Query('page') page?: number,
         @Query('limit') limit?: number,
         @Query('search') search?: string,
+        @CurrentUser() user?: any,
     ) {
         return this.ordersService.findAll({
             outletId,
@@ -52,12 +53,12 @@ export class OrdersController {
             page,
             limit,
             search,
-        });
+        }, user);
     }
 
     @Get(':id')
     @ApiOperation({ summary: 'Get order details' })
-    findOne(@Param('id') id: string) {
-        return this.ordersService.findOne(id);
+    findOne(@Param('id') id: string, @CurrentUser() user: any) {
+        return this.ordersService.findOne(id, user);
     }
 }

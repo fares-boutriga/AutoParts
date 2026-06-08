@@ -41,16 +41,17 @@ export const useAuthStore = create<AuthState>()(
             token: null,
             isAuthenticated: false,
             login: (user, token) => {
-                localStorage.setItem('token', token);
-                set({ user, token, isAuthenticated: true });
+                // Tokens are now stored in HttpOnly cookies natively
+                set({ user, token: null, isAuthenticated: true });
             },
             logout: () => {
-                localStorage.removeItem('token');
+                // Backend clears cookies upon logout
                 set({ user: null, token: null, isAuthenticated: false });
             },
         }),
         {
             name: 'auth-storage',
+            partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }), // Don't persist token
         }
     )
 );

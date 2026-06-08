@@ -11,15 +11,9 @@ const api = axios.create({
     withCredentials: true, // Enable cookies for cross-origin requests
 });
 
-// Request interceptor for attaching auth token
+// Request interceptor for attaching auth token (Now using HttpOnly Cookies natively, so we just pass through)
 api.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
+    (config) => config,
     (error) => Promise.reject(error)
 );
 
