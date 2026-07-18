@@ -9,6 +9,7 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const publicDir = join(process.cwd(), 'public');
 
   // Security Middlewares
   app.use(helmet({
@@ -17,11 +18,18 @@ async function bootstrap() {
   app.use(cookieParser());
 
   // Serve frontend static build from server/public
-  app.useStaticAssets(join(process.cwd(), 'public'));
+  app.useStaticAssets(publicDir);
 
   // Enable CORS
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'http://192.168.208.1:5173',
+    'http://localhost:5173',
+    'http://192.168.1.9:5173',
+  ].filter((origin): origin is string => Boolean(origin));
+
   app.enableCors({
-    origin: ['http://192.168.208.1:5173', 'http://localhost:5173', 'http://192.168.1.9:5173'],
+    origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -63,6 +71,37 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
+
+  // Let React Router handle browser refreshes on client-side routes.
+  // API routes are excluded so unknown API requests still return API errors.
+  const apiPrefixes = [
+    '/auth',
+    '/users',
+    '/roles',
+    '/permissions',
+    '/categories',
+    '/outlets',
+    '/products',
+    '/stock',
+    '/orders',
+    '/customers',
+    '/notifications',
+    '/integrations',
+    '/store-settings',
+    '/dashboard',
+  ];
+
+  app.getHttpAdapter().getInstance().use((req, res, next) => {
+    const isApiRoute = apiPrefixes.some(
+      (prefix) => req.path === prefix || req.path.startsWith(`${prefix}/`),
+    );
+
+    if (req.method !== 'GET' || isApiRoute || req.path.includes('.')) {
+      return next();
+    }
+
+    return res.sendFile(join(publicDir, 'index.html'));
+  });
 
   console.log(`🚀 Application is running on: http://localhost:${port}`);
   if (process.env.NODE_ENV !== 'production') {

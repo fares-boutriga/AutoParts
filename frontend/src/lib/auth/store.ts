@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthState>()(
             user: null,
             token: null,
             isAuthenticated: false,
-            login: (user, token) => {
+            login: (user, _token) => {
                 // Tokens are now stored in HttpOnly cookies natively
                 set({ user, token: null, isAuthenticated: true });
             },

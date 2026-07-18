@@ -4,7 +4,7 @@ import { buildLoginRedirectUrl, buildPathFromLocation } from '@/lib/auth/redirec
 
 // Create API client instance with correct configurations
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+    baseURL: import.meta.env.VITE_API_URL || '/',
     headers: {
         'Content-Type': 'application/json',
     },
