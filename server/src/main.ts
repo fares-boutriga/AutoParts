@@ -44,33 +44,30 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger configuration (Only in non-production)
-  if (process.env.NODE_ENV !== 'production') {
-      const config = new DocumentBuilder()
-        .setTitle('Auto Parts POS API')
-        .setDescription(
-          'Production-ready backend for car spare parts sales management',
-        )
-        .setVersion('1.0')
-        .addBearerAuth()
-        .addTag('Authentication')
-        .addTag('Users')
-        .addTag('Roles & Permissions')
-        .addTag('Outlets')
-        .addTag('Products')
-        .addTag('Stock')
-        .addTag('Orders')
-        .addTag('Customers')
-        .addTag('Notifications')
-        .addTag('Dashboard')
-        .build();
-    
-      const document = SwaggerModule.createDocument(app, config);
-      SwaggerModule.setup('api/docs', app, document);
-  }
+  // Swagger configuration
+  const config = new DocumentBuilder()
+    .setTitle('Auto Parts POS API')
+    .setDescription(
+      'Production-ready backend for car spare parts sales management',
+    )
+    .setVersion('1.0')
+    .addBearerAuth()
+    .addTag('Authentication')
+    .addTag('Users')
+    .addTag('Roles & Permissions')
+    .addTag('Outlets')
+    .addTag('Products')
+    .addTag('Stock')
+    .addTag('Orders')
+    .addTag('Customers')
+    .addTag('Notifications')
+    .addTag('Dashboard')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT || 3000;
-  await app.listen(port);
 
   // Let React Router handle browser refreshes on client-side routes.
   // API routes are excluded so unknown API requests still return API errors.
@@ -92,21 +89,35 @@ async function bootstrap() {
   ];
 
   app.getHttpAdapter().getInstance().use((req, res, next) => {
+    // Skip non-GET requests, static files, and actual API calls
+    if (req.method !== 'GET' || req.path.includes('.')) {
+      return next();
+    }
+
+    // Check if this is an actual API request (not a browser refresh)
+    const accept = req.get('accept') || '';
+    const isApiRequest = accept.includes('application/json');
     const isApiRoute = apiPrefixes.some(
       (prefix) => req.path === prefix || req.path.startsWith(`${prefix}/`),
     );
 
-    if (req.method !== 'GET' || isApiRoute || req.path.includes('.')) {
+    // If it's an API route AND an API request, let it through to the handler
+    if (isApiRoute && isApiRequest) {
       return next();
     }
 
-    return res.sendFile(join(publicDir, 'index.html'));
+    // Otherwise, if it's not a static file, serve the frontend (React Router will handle it)
+    if (!req.path.includes('.')) {
+      return res.sendFile(join(publicDir, 'index.html'));
+    }
+
+    return next();
   });
 
+  await app.listen(port);
+
   console.log(`🚀 Application is running on: http://localhost:${port}`);
-  if (process.env.NODE_ENV !== 'production') {
-      console.log(`📚 Swagger documentation: http://localhost:${port}/api/docs`);
-  }
+  console.log(`📚 Swagger documentation: http://localhost:${port}/api/docs`);
 }
 
 bootstrap();
