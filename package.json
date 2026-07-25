@@ -1,0 +1,7 @@
+{
+  "name": "autoparts-monorepo",
+  "private": true,
+  "scripts": {
+    "deploy:frontend": "npm --prefix frontend run build && node scripts/deploy-frontend.mjs"
+  }
+}

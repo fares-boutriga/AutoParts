@@ -265,22 +265,22 @@ export default function StoreSettingsPage() {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="min-w-0 space-y-5 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
             <div>
-                <h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                <h1 className="text-3xl sm:text-4xl font-black leading-tight tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                     Paramètres du Magasin
                 </h1>
                 <p className="text-slate-500 mt-1">Configurez les informations de votre boutique et le format des factures.</p>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <div className="grid min-w-0 grid-cols-1 gap-5 sm:gap-8 xl:grid-cols-2">
                 {/* Left – Form */}
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="min-w-0 space-y-5 sm:space-y-6">
                     {/* Store Info */}
-                    <Card className="border-none shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl">
+                    <Card className="min-w-0 border-none shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl sm:rounded-3xl">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
+                            <CardTitle className="flex min-w-0 items-center gap-2 text-xl sm:text-2xl">
                                 <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
                                     <Store className="h-4 w-4" />
                                 </div>
@@ -299,7 +299,7 @@ export default function StoreSettingsPage() {
                                 <Input id="address" value={form.address} onChange={(e) => handleChange('address', e.target.value)}
                                     placeholder="Rue de la Liberté, Tunis 1001" className="h-11 rounded-xl" />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div className="space-y-2">
                                     <Label htmlFor="phone"><Phone className="inline h-3 w-3 mr-1" />Téléphone</Label>
                                     <Input id="phone" value={form.phone} onChange={(e) => handleChange('phone', e.target.value)}
@@ -315,9 +315,9 @@ export default function StoreSettingsPage() {
                     </Card>
 
                     {/* Legal / Invoice */}
-                    <Card className="border-none shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl">
+                    <Card className="min-w-0 border-none shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl sm:rounded-3xl">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
+                            <CardTitle className="flex min-w-0 items-center gap-2 text-xl sm:text-2xl">
                                 <div className="h-8 w-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
                                     <Building2 className="h-4 w-4" />
                                 </div>
@@ -326,7 +326,7 @@ export default function StoreSettingsPage() {
                             <CardDescription>Numéro de patente, TVA, préfixe des factures.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div className="space-y-2">
                                     <Label htmlFor="patente"><Hash className="inline h-3 w-3 mr-1" />Numéro de Patente</Label>
                                     <Input id="patente" value={form.patente} onChange={(e) => handleChange('patente', e.target.value)}
@@ -339,7 +339,7 @@ export default function StoreSettingsPage() {
                                         placeholder="19" className="h-11 rounded-xl" />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div className="space-y-2">
                                     <Label htmlFor="invoicePrefix"><FileText className="inline h-3 w-3 mr-1" />Préfixe Facture</Label>
                                     <Input id="invoicePrefix" value={form.invoicePrefix} onChange={(e) => handleChange('invoicePrefix', e.target.value)}
@@ -354,9 +354,9 @@ export default function StoreSettingsPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="border-none shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl">
+                    <Card className="min-w-0 border-none shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl sm:rounded-3xl">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
+                            <CardTitle className="flex min-w-0 items-center gap-2 text-xl sm:text-2xl">
                                 <div className="h-8 w-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
                                     <BellRing className="h-4 w-4" />
                                 </div>
@@ -526,8 +526,8 @@ export default function StoreSettingsPage() {
                 </form>
 
                 {/* Right – Live Preview */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-slate-500">
+                <div className="min-w-0 space-y-4">
+                    <div className="flex flex-wrap items-center gap-2 text-slate-500">
                         <Eye className="h-4 w-4" />
                         <span className="text-sm font-bold uppercase tracking-widest">Aperçu de la Facture</span>
                         <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">Temps réel</span>

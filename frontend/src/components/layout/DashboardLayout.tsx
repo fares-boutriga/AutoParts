@@ -10,17 +10,17 @@ export default function DashboardLayout() {
     const location = useLocation();
 
     return (
-        <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr] bg-slate-50 dark:bg-slate-950">
+        <div className="grid min-h-screen min-w-0 w-full lg:grid-cols-[280px_minmax(0,1fr)] bg-slate-50 dark:bg-slate-950">
             {/* Desktop Sidebar */}
             <div className="hidden lg:block lg:sticky lg:top-0 lg:h-screen">
                 <Sidebar />
             </div>
 
             {/* Main Content */}
-            <div className="flex flex-col">
+            <div className="flex min-w-0 flex-col">
                 <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-                <main className="flex flex-1 flex-col gap-4 p-4 pb-24 md:gap-8 md:p-8 md:pb-8">
-                    <div key={location.pathname} className="h-full animate-in fade-in slide-in-from-right-2 duration-300">
+                <main className="flex min-w-0 flex-1 flex-col gap-4 overflow-x-hidden p-3 pb-24 sm:p-4 md:gap-8 md:p-8 md:pb-8">
+                    <div key={location.pathname} className="h-full min-w-0 animate-in fade-in slide-in-from-right-2 duration-300">
                         <Outlet />
                     </div>
                 </main>

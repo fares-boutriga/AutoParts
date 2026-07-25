@@ -715,15 +715,15 @@ export default function POS() {
                                 <span>{t('pos_page.subtotal')}</span>
                                 <span>{cartTotal.toFixed(2)} TND</span>
                             </div>
-                            <div className="flex justify-between items-end">
-                                <span className="text-xl font-black">{t('pos_page.totalAmount')}</span>
-                                <span className="text-4xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                            <div className="flex flex-wrap justify-between gap-2 items-end">
+                                <span className="text-lg sm:text-xl font-black">{t('pos_page.totalAmount')}</span>
+                                <span className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                                     {cartTotal.toFixed(2)} TND
                                 </span>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 w-full">
+                        <div className="grid grid-cols-1 gap-3 w-full sm:grid-cols-2">
                             <Button
                                 variant="outline"
                                 className="h-14 rounded-2xl border-2 font-black uppercase text-[10px] tracking-widest gap-2"

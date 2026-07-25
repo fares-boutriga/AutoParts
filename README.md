@@ -38,6 +38,21 @@ npm run start:dev
 The API will be available at `http://localhost:3000`  
 Swagger documentation at `http://localhost:3000/api/docs`
 
+### Frontend build and deploy
+
+To build the frontend and copy the generated files into the server public folder in one step, run:
+
+```bash
+npm run deploy:frontend
+```
+
+On the VPS, you can run the same command from the server folder as well:
+
+```bash
+cd /home/fare/AutoParts/server
+npm run deploy:frontend
+```
+
 ## 📁 Project Structure
 
 ```

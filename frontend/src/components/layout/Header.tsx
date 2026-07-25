@@ -31,7 +31,7 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     };
 
     return (
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-slate-200/50 dark:border-white/5 px-6 lg:h-20 transition-all">
+        <header className="sticky top-0 z-10 flex h-16 min-w-0 items-center gap-1 bg-white/70 px-2 backdrop-blur-xl transition-all dark:bg-slate-900/70 border-b border-slate-200/50 dark:border-white/5 sm:gap-2 sm:px-4 lg:h-20 lg:gap-4 lg:px-6">
             <Button
                 variant="ghost"
                 size="icon"
@@ -42,13 +42,13 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                 <span className="sr-only">Toggle navigation menu</span>
             </Button>
 
-            <div className="w-full flex-1">
+            <div className="min-w-0 flex-1">
                 <div className="flex flex-col">
-                    <h1 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                    <h1 className="truncate text-[10px] font-black uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500 sm:text-sm sm:tracking-[0.2em]">
                         {t('header.systemContext')}
                     </h1>
                     <div className="flex items-center gap-2">
-                        <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+                        <span className="truncate text-base font-black tracking-tight text-slate-900 dark:text-white sm:text-xl">
                             {t('header.dashboard')}
                         </span>
                         <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse hidden md:block" />
@@ -56,11 +56,11 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                 </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex shrink-0 items-center gap-0.5 sm:gap-2 lg:gap-3">
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="relative rounded-xl h-10 w-10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400"
+                    className="relative hidden rounded-xl h-10 w-10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 sm:inline-flex"
                 >
                     <Bell className="h-5 w-5" />
                     <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-rose-500 border-2 border-white dark:border-slate-900" />
@@ -82,7 +82,7 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="relative rounded-xl h-10 w-10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400"
+                            className="relative hidden rounded-xl h-10 w-10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 sm:inline-flex"
                         >
                             <Globe className="h-5 w-5" />
                             <span className="sr-only">Toggle Language</span>
