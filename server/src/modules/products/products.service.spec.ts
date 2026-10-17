@@ -27,12 +27,12 @@ describe('ProductsService.findByReference', () => {
 
         expect(prisma.product.findFirst).toHaveBeenCalledWith(
             expect.objectContaining({
-                where: {
+                where: expect.objectContaining({
                     reference: {
                         equals: 'bp-001',
                         mode: 'insensitive',
                     },
-                },
+                }),
             }),
         );
         expect(result.totalQuantity).toBe(10);

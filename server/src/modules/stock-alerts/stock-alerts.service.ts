@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { TelegramService } from '../telegram/telegram.service';
@@ -14,32 +13,18 @@ export class StockAlertsService {
         private configService: ConfigService,
     ) { }
 
-    // Backup cron job for periodic stock checks
-    @Cron('*/5 * * * *') // Every 5 minutes
+    /**
+     * Manual / admin-triggered full stock scan.
+     * No longer runs on a cron schedule — stock alerts are triggered
+     * automatically after each order via checkStockAfterUpdate().
+     */
     async checkStockLevels() {
-        console.log('[StockAlertsService] Running stock level check...');
+        console.log('[StockAlertsService] Running manual stock level check...');
 
-        const cooldownHours = this.configService.get<number>(
-            'STOCK_ALERT_COOLDOWN_HOURS',
-            24,
-        );
-
-        const cooldownDate = new Date();
-        cooldownDate.setHours(cooldownDate.getHours() - cooldownHours);
-
-        // Find stocks below outlet-specific minimum and not alerted recently
-        const lowStocks = await this.prisma.stock.findMany({
+        // Stocks using outlet-specific minimum
+        const outletLowStocks = await this.prisma.stock.findMany({
             where: {
-                OR: [
-                    {
-                        minStockLevel: { not: null },
-                        quantity: { lt: this.prisma.stock.fields.minStockLevel },
-                        OR: [
-                            { lastAlertAt: null },
-                            { lastAlertAt: { lt: cooldownDate } },
-                        ],
-                    },
-                ],
+                minStockLevel: { not: null },
             },
             include: {
                 product: true,
@@ -54,7 +39,6 @@ export class StockAlertsService {
                 product: {
                     minStockLevel: { gt: 0 },
                 },
-                OR: [{ lastAlertAt: null }, { lastAlertAt: { lt: cooldownDate } }],
             },
             include: {
                 product: true,
@@ -62,7 +46,9 @@ export class StockAlertsService {
             },
         });
 
-        const allLowStocks = [...lowStocks];
+        const allLowStocks = outletLowStocks.filter(
+            (s) => s.quantity < (s.minStockLevel ?? 0),
+        );
         for (const stock of globalLowStocks) {
             if (stock.quantity < stock.product.minStockLevel) {
                 allLowStocks.push(stock);
@@ -149,6 +135,29 @@ export class StockAlertsService {
         telegramAlertsEnabled: boolean,
     ) {
         try {
+            // Deduplication: skip if an unseen alert already exists for this product+outlet.
+            // The user will receive a new notification only after they dismiss (mark as seen) the existing one.
+            const existingUnseen = await this.prisma.notification.findFirst({
+                where: {
+                    type: 'STOCK_ALERT',
+                    outletId,
+                    productId,
+                    seen: false,
+                },
+            });
+
+            if (existingUnseen) {
+                console.log(
+                    `[StockAlertsService] Skipping duplicate in-app notification for ${productName} at ${outletName} (unseen alert already exists)`,
+                );
+                // Still update lastAlertAt so cooldown is respected for external channels
+                await this.prisma.stock.update({
+                    where: { id: stockId },
+                    data: { lastAlertAt: new Date() },
+                });
+                return;
+            }
+
             await this.prisma.notification.create({
                 data: {
                     type: 'STOCK_ALERT',

@@ -5,6 +5,7 @@ describe('StockAlertsService channel routing', () => {
     const createService = () => {
         const prisma = {
             notification: {
+                findFirst: jest.fn().mockResolvedValue(null),
                 create: jest.fn().mockResolvedValue({ id: 'n1' }),
             },
             stock: {
@@ -138,6 +139,30 @@ describe('StockAlertsService channel routing', () => {
         expect(emailService.sendStockAlert).not.toHaveBeenCalled();
         expect(telegramService.sendStockAlert).not.toHaveBeenCalled();
         expect(prisma.notification.create).toHaveBeenCalledTimes(1);
+        expect(prisma.stock.update).toHaveBeenCalledTimes(1);
+    });
+
+    it('skips creating notification if an unseen alert already exists for the same product and outlet', async () => {
+        const { service, emailService, telegramService, prisma } = createService();
+        prisma.notification.findFirst.mockResolvedValue({ id: 'existing-alert', seen: false });
+
+        await service.createStockAlert(
+            'stock-id',
+            'Produit A',
+            3,
+            10,
+            'Outlet A',
+            'outlet-id',
+            'product-id',
+            'admin@outlet.com',
+            true,
+            '-1001234567890',
+            true,
+        );
+
+        expect(prisma.notification.create).not.toHaveBeenCalled();
+        expect(emailService.sendStockAlert).not.toHaveBeenCalled();
+        expect(telegramService.sendStockAlert).not.toHaveBeenCalled();
         expect(prisma.stock.update).toHaveBeenCalledTimes(1);
     });
 });
